@@ -201,7 +201,7 @@
   },
   "rapid_api": {
     "exercise_db": {
-      "api_key": "dc7c70f7d5mshb16650ffa6549b7p1394c2jsn0ed454eedbda",
+      "api_key": "${RAPIDAPI_KEY}",
       "base_url": "https://exercisedb.p.rapidapi.com",
       "cache_strategy": "aggressive",
       "fallback_enabled": true
