@@ -1,0 +1,8 @@
+Os seguintes arquivos de imagem precisam ser criados:
+
+1. icon.png - Ícone do aplicativo (1024x1024px)
+2. splash.png - Tela de splash (1242x2436px)
+3. adaptive-icon.png - Ícone adaptativo para Android (1024x1024px)
+4. favicon.png - Favicon para web (48x48px)
+
+Por enquanto, o app funcionará sem esses arquivos, mas eles devem ser adicionados antes da publicação.
