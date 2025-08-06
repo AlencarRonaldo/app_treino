@@ -1,0 +1,406 @@
+{
+  "master": [
+    {
+      "id": "1",
+      "title": "Fix Login Screen Loading Issue",
+      "description": "Resolve the issue where login screen doesn't load in web browser due to Expo SDK 51 compatibility",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "details": "The login screen fails to load due to _expoModulesCore.registerWebModule error. Solution implemented with polyfill in App.tsx and platform-specific protections.",
+      "testStrategy": "Test on web browser (localhost:8081), verify login screen appears, check console for errors",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "title": "Implement polyfill for _expoModulesCore",
+          "status": "done"
+        },
+        {
+          "id": "1.2",
+          "title": "Add ErrorBoundary component",
+          "status": "done"
+        },
+        {
+          "id": "1.3",
+          "title": "Protect Google Sign-In for web platform",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Implement Authentication System",
+      "description": "Complete authentication flow with email/password and Google Sign-In",
+      "status": "in-progress",
+      "priority": "critical",
+      "dependencies": ["1"],
+      "details": "Implement JWT-based authentication with backend integration. Support both email/password and Google Sign-In methods.",
+      "testStrategy": "Test login/signup flows, verify token storage, test session persistence",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "title": "Backend JWT authentication setup",
+          "status": "pending"
+        },
+        {
+          "id": "2.2",
+          "title": "Frontend AuthContext implementation",
+          "status": "in-progress"
+        },
+        {
+          "id": "2.3",
+          "title": "Google Sign-In integration",
+          "status": "pending"
+        },
+        {
+          "id": "2.4",
+          "title": "Password recovery flow",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Create Workout Management System",
+      "description": "Build complete workout CRUD functionality with categories and templates",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["2"],
+      "details": "Users should be able to create, edit, duplicate, and delete workouts. Include categorization by muscle groups and workout types.",
+      "testStrategy": "Test CRUD operations, verify data persistence, test offline functionality",
+      "subtasks": [
+        {
+          "id": "3.1",
+          "title": "Design workout data model",
+          "status": "pending"
+        },
+        {
+          "id": "3.2",
+          "title": "Create WorkoutContext for state management",
+          "status": "pending"
+        },
+        {
+          "id": "3.3",
+          "title": "Build workout creation screen",
+          "status": "pending"
+        },
+        {
+          "id": "3.4",
+          "title": "Implement workout list with search/filter",
+          "status": "pending"
+        },
+        {
+          "id": "3.5",
+          "title": "Add workout templates feature",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Build Exercise Library",
+      "description": "Create comprehensive exercise database with Brazilian Portuguese names",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["2"],
+      "details": "200+ exercises with categories, muscle groups, equipment requirements, and instructions. Use Brazilian Portuguese names like Supino Reto, Agachamento, etc.",
+      "testStrategy": "Verify exercise data completeness, test search functionality, validate Portuguese translations",
+      "subtasks": [
+        {
+          "id": "4.1",
+          "title": "Create exercise database structure",
+          "status": "pending"
+        },
+        {
+          "id": "4.2",
+          "title": "Populate with 200+ exercises",
+          "status": "pending"
+        },
+        {
+          "id": "4.3",
+          "title": "Build exercise browser screen",
+          "status": "pending"
+        },
+        {
+          "id": "4.4",
+          "title": "Implement exercise search and filters",
+          "status": "pending"
+        },
+        {
+          "id": "4.5",
+          "title": "Add custom exercise creation",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Integrate ExerciseDB API with Custom Videos",
+      "description": "Integrate ExerciseDB API (5000+ exercises) with custom video upload system for personal trainers",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["2", "4"],
+      "details": "Implement hybrid exercise system combining ExerciseDB API with custom video uploads. Features: RapidAPI integration, offline cache, GIF+MP4 player, trainer-student video assignments, search by body part/equipment, Portuguese exercise names.",
+      "testStrategy": "Test API integration, verify video upload/playback, test offline functionality, validate cache system",
+      "subtasks": [
+        {
+          "id": "5.1",
+          "title": "Install required dependencies (react-native-video, image-picker, fast-image)",
+          "status": "pending"
+        },
+        {
+          "id": "5.2",
+          "title": "Create ExerciseDBService with RapidAPI integration",
+          "status": "pending"
+        },
+        {
+          "id": "5.3",
+          "title": "Implement CustomVideoService for trainer uploads",
+          "status": "pending"
+        },
+        {
+          "id": "5.4",
+          "title": "Build hybrid VideoPlayer component (GIF+MP4)",
+          "status": "pending"
+        },
+        {
+          "id": "5.5",
+          "title": "Create ExerciseBrowser screen with filters",
+          "status": "pending"
+        },
+        {
+          "id": "5.6",
+          "title": "Implement cache system with AsyncStorage",
+          "status": "pending"
+        },
+        {
+          "id": "5.7",
+          "title": "Add offline sync and preload functionality",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "title": "Implement Workout Timer",
+      "description": "Create timer system with rest periods, notifications, and background support",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["3", "5"],
+      "details": "Timer should track sets/reps, rest periods between sets, provide audio/vibration notifications, and work in background.",
+      "testStrategy": "Test timer accuracy, verify background functionality, test notifications on different devices",
+      "subtasks": [
+        {
+          "id": "6.1",
+          "title": "Build timer UI component",
+          "status": "pending"
+        },
+        {
+          "id": "6.2",
+          "title": "Implement countdown logic with hooks",
+          "status": "pending"
+        },
+        {
+          "id": "6.3",
+          "title": "Add rest period management",
+          "status": "pending"
+        },
+        {
+          "id": "6.4",
+          "title": "Integrate notifications (audio/vibration)",
+          "status": "pending"
+        },
+        {
+          "id": "6.5",
+          "title": "Enable background timer support",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "title": "Create Progress Tracking System",
+      "description": "Build comprehensive progress tracking with charts and analytics",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["3", "6"],
+      "details": "Track weight progression, volume calculations, personal records, body measurements, and provide visual charts.",
+      "testStrategy": "Verify data calculations, test chart rendering, validate historical data accuracy",
+      "subtasks": [
+        {
+          "id": "7.1",
+          "title": "Design progress data model",
+          "status": "pending"
+        },
+        {
+          "id": "7.2",
+          "title": "Create ProgressContext for state",
+          "status": "pending"
+        },
+        {
+          "id": "7.3",
+          "title": "Implement metrics calculation engine",
+          "status": "pending"
+        },
+        {
+          "id": "7.4",
+          "title": "Integrate react-native-chart-kit",
+          "status": "pending"
+        },
+        {
+          "id": "7.5",
+          "title": "Build progress dashboard screen",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "title": "Implement Data Persistence with AsyncStorage",
+      "description": "Set up offline-first data storage and synchronization",
+      "status": "pending",
+      "priority": "critical",
+      "dependencies": ["2"],
+      "details": "Implement local storage for all app data using AsyncStorage, with sync mechanism for when online.",
+      "testStrategy": "Test offline functionality, verify data persistence, test sync conflict resolution",
+      "subtasks": [
+        {
+          "id": "8.1",
+          "title": "Create storage service layer",
+          "status": "pending"
+        },
+        {
+          "id": "8.2",
+          "title": "Implement data models with AsyncStorage",
+          "status": "pending"
+        },
+        {
+          "id": "8.3",
+          "title": "Build sync queue mechanism",
+          "status": "pending"
+        },
+        {
+          "id": "8.4",
+          "title": "Add conflict resolution logic",
+          "status": "pending"
+        },
+        {
+          "id": "8.5",
+          "title": "Create backup/restore functionality",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "title": "Build Student Management for Trainers",
+      "description": "Create system for personal trainers to manage multiple students",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["2", "3"],
+      "details": "Allow trainers to add students, assign workouts, track progress, and communicate via WhatsApp integration.",
+      "testStrategy": "Test student CRUD, verify workout assignment, test progress tracking per student",
+      "subtasks": [
+        {
+          "id": "9.1",
+          "title": "Design student management data model",
+          "status": "pending"
+        },
+        {
+          "id": "9.2",
+          "title": "Create student list screen",
+          "status": "pending"
+        },
+        {
+          "id": "9.3",
+          "title": "Build workout assignment system",
+          "status": "pending"
+        },
+        {
+          "id": "9.4",
+          "title": "Implement student progress dashboard",
+          "status": "pending"
+        },
+        {
+          "id": "9.5",
+          "title": "Add WhatsApp integration",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "title": "Optimize Performance and Bundle Size",
+      "description": "Optimize app performance, reduce bundle size, and improve loading times",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["6", "7"],
+      "details": "Target <50MB bundle size, <3s load time, 60fps animations, <150MB memory usage.",
+      "testStrategy": "Measure bundle size, profile performance, test on low-end devices",
+      "subtasks": [
+        {
+          "id": "10.1",
+          "title": "Analyze current bundle size",
+          "status": "pending"
+        },
+        {
+          "id": "10.2",
+          "title": "Implement code splitting",
+          "status": "pending"
+        },
+        {
+          "id": "10.3",
+          "title": "Optimize images and assets",
+          "status": "pending"
+        },
+        {
+          "id": "10.4",
+          "title": "Add lazy loading for screens",
+          "status": "pending"
+        },
+        {
+          "id": "10.5",
+          "title": "Profile and optimize renders",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "title": "Add Testing Coverage",
+      "description": "Implement comprehensive testing strategy with unit, integration, and E2E tests",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": ["3", "4", "6"],
+      "details": "Achieve 80% code coverage with unit tests, integration tests for critical flows, E2E tests for user journeys.",
+      "testStrategy": "Use Jest for unit tests, React Native Testing Library for components, Detox for E2E",
+      "subtasks": [
+        {
+          "id": "11.1",
+          "title": "Set up Jest and testing infrastructure",
+          "status": "pending"
+        },
+        {
+          "id": "11.2",
+          "title": "Write unit tests for utilities",
+          "status": "pending"
+        },
+        {
+          "id": "11.3",
+          "title": "Add component tests",
+          "status": "pending"
+        },
+        {
+          "id": "11.4",
+          "title": "Create integration tests",
+          "status": "pending"
+        },
+        {
+          "id": "11.5",
+          "title": "Implement E2E tests with Detox",
+          "status": "pending"
+        }
+      ]
+    }
+  ]
+}

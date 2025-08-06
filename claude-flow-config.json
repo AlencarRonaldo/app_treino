@@ -1,0 +1,233 @@
+{
+  "project": {
+    "name": "TreinosApp",
+    "type": "react-native-expo",
+    "language": "typescript",
+    "description": "Brazilian fitness tracking application with comprehensive workout management"
+  },
+  "agents": {
+    "architect": {
+      "role": "System design and architecture",
+      "focus": ["API design", "Database schema", "System integration", "ExerciseDB integration"],
+      "context7_enabled": true,
+      "libraries": ["react-native", "expo", "typescript", "node.js", "express"]
+    },
+    "backend": {
+      "role": "Server-side implementation",
+      "focus": ["Node.js", "Express", "PostgreSQL", "JWT Authentication", "RapidAPI integration"],
+      "context7_enabled": true,
+      "libraries": ["express", "prisma", "jwt", "bcrypt", "axios"]
+    },
+    "frontend": {
+      "role": "React Native development",
+      "focus": ["UI components", "State management", "Navigation", "Video player integration"],
+      "context7_enabled": true,
+      "libraries": ["react-native", "expo", "react-navigation", "react-native-paper", "react-native-video"]
+    },
+    "api_integrator": {
+      "role": "External API integration specialist",
+      "focus": ["ExerciseDB API", "RapidAPI", "Custom video services", "Cache management"],
+      "context7_enabled": true,
+      "libraries": ["axios", "react-native-fast-image", "react-native-video", "@react-native-async-storage/async-storage"]
+    },
+    "database": {
+      "role": "Data persistence and optimization",
+      "focus": ["AsyncStorage", "PostgreSQL", "Data synchronization", "Cache optimization"],
+      "context7_enabled": true,
+      "libraries": ["prisma", "@react-native-async-storage/async-storage", "postgresql"]
+    },
+    "tester": {
+      "role": "Quality assurance",
+      "focus": ["Unit tests", "Integration tests", "E2E tests", "API testing"],
+      "context7_enabled": true,
+      "libraries": ["jest", "react-native-testing-library", "detox"]
+    }
+  },
+  "tasks": {
+    "priority_1": {
+      "name": "Authentication System",
+      "description": "Complete JWT authentication with backend integration",
+      "agent": "backend",
+      "context7_queries": ["jwt authentication node.js", "express middleware authentication", "bcrypt password hashing"],
+      "subtasks": [
+        "Backend JWT authentication setup",
+        "Frontend AuthContext implementation", 
+        "Google Sign-In integration",
+        "Password recovery flow"
+      ],
+      "dependencies": [],
+      "status": "in-progress"
+    },
+    "priority_2": {
+      "name": "ExerciseDB Integration",
+      "description": "Integrate ExerciseDB API with custom video system",
+      "agent": "api_integrator",
+      "context7_queries": ["rapidapi integration react-native", "axios caching strategies", "react-native-video implementation", "async storage best practices"],
+      "subtasks": [
+        "Install required dependencies (react-native-video, image-picker, fast-image)",
+        "Create ExerciseDBService with RapidAPI integration",
+        "Implement CustomVideoService for trainer uploads", 
+        "Build hybrid VideoPlayer component (GIF+MP4)",
+        "Create ExerciseBrowser screen with filters",
+        "Implement cache system with AsyncStorage",
+        "Add offline sync and preload functionality"
+      ],
+      "dependencies": ["priority_1"],
+      "status": "pending"
+    },
+    "priority_3": {
+      "name": "Workout Management System", 
+      "description": "Complete workout CRUD functionality with categories",
+      "agent": "frontend",
+      "context7_queries": ["react-native context api patterns", "react-navigation best practices", "form validation react-native"],
+      "subtasks": [
+        "Design workout data model",
+        "Create WorkoutContext for state management",
+        "Build workout creation screen", 
+        "Implement workout list with search/filter",
+        "Add workout templates feature"
+      ],
+      "dependencies": ["priority_1"],
+      "status": "pending"
+    },
+    "priority_4": {
+      "name": "Exercise Library",
+      "description": "Comprehensive exercise database with Portuguese names",
+      "agent": "database", 
+      "context7_queries": ["prisma schema design", "postgresql optimization", "full-text search implementation"],
+      "subtasks": [
+        "Create exercise database structure",
+        "Populate with 200+ exercises",
+        "Build exercise browser screen",
+        "Implement exercise search and filters", 
+        "Add custom exercise creation"
+      ],
+      "dependencies": ["priority_1"],
+      "status": "pending"
+    },
+    "priority_5": {
+      "name": "Workout Timer System",
+      "description": "Timer with rest periods, notifications, and background support",
+      "agent": "frontend",
+      "context7_queries": ["react-native timer background", "expo notifications", "react-native sound"],
+      "subtasks": [
+        "Build timer UI component",
+        "Implement countdown logic with hooks",
+        "Add rest period management",
+        "Integrate notifications (audio/vibration)", 
+        "Enable background timer support"
+      ],
+      "dependencies": ["priority_3", "priority_2"],
+      "status": "pending"
+    },
+    "priority_6": {
+      "name": "Progress Tracking System",
+      "description": "Comprehensive progress tracking with charts and analytics",
+      "agent": "frontend",
+      "context7_queries": ["react-native-chart-kit", "data visualization react-native", "metrics calculation algorithms"],
+      "subtasks": [
+        "Design progress data model",
+        "Create ProgressContext for state",
+        "Implement metrics calculation engine",
+        "Integrate react-native-chart-kit",
+        "Build progress dashboard screen"
+      ],
+      "dependencies": ["priority_3", "priority_5"],
+      "status": "pending"
+    },
+    "priority_7": {
+      "name": "Data Persistence & Sync",
+      "description": "Offline-first data storage with synchronization",
+      "agent": "database",
+      "context7_queries": ["async storage patterns", "offline sync strategies", "conflict resolution algorithms"],
+      "subtasks": [
+        "Create storage service layer",
+        "Implement data models with AsyncStorage", 
+        "Build sync queue mechanism",
+        "Add conflict resolution logic",
+        "Create backup/restore functionality"
+      ],
+      "dependencies": ["priority_1"],
+      "status": "pending"
+    },
+    "priority_8": {
+      "name": "Student Management System",
+      "description": "Personal trainer tools for managing students",
+      "agent": "frontend",
+      "context7_queries": ["multi-tenant architecture", "user role management", "whatsapp api integration"],
+      "subtasks": [
+        "Design student management data model",
+        "Create student list screen",
+        "Build workout assignment system",
+        "Implement student progress dashboard",
+        "Add WhatsApp integration"
+      ],
+      "dependencies": ["priority_1", "priority_3"],
+      "status": "pending"
+    }
+  },
+  "settings": {
+    "mode": "orchestrated-hive-mind",
+    "parallel_execution": true,
+    "auto_test": true,
+    "code_quality": "high",
+    "documentation": true,
+    "language": "pt-BR",
+    "context7_integration": {
+      "enabled": true,
+      "auto_query": true,
+      "cache_duration": "24h",
+      "priority_libraries": ["react-native", "expo", "node.js", "express", "typescript"]
+    },
+    "task_master_integration": {
+      "enabled": true,
+      "sync_interval": "5m",
+      "auto_status_update": true,
+      "priority_tracking": true
+    },
+    "workflow_orchestration": {
+      "dependency_management": "automatic",
+      "resource_optimization": true,
+      "progress_monitoring": "real-time",
+      "failure_recovery": "automatic",
+      "quality_gates": ["lint", "test", "build", "deploy"]
+    },
+    "communication": {
+      "status_updates": "automated",
+      "progress_reports": "daily",
+      "error_notifications": "immediate",
+      "completion_alerts": "enabled"
+    }
+  },
+  "rapid_api": {
+    "exercise_db": {
+      "api_key": "dc7c70f7d5mshb16650ffa6549b7p1394c2jsn0ed454eedbda",
+      "base_url": "https://exercisedb.p.rapidapi.com",
+      "cache_strategy": "aggressive",
+      "fallback_enabled": true
+    }
+  },
+  "context7_libraries": {
+    "react-native": {
+      "version": "latest",
+      "focus": ["navigation", "components", "performance", "testing"]
+    },
+    "expo": {
+      "version": "51",
+      "focus": ["sdk-integration", "build-process", "deployment"]
+    },
+    "node.js": {
+      "version": "18+",
+      "focus": ["express", "authentication", "database", "api-design"]
+    },
+    "typescript": {
+      "version": "latest",
+      "focus": ["type-safety", "interfaces", "generics"]
+    },
+    "prisma": {
+      "version": "latest", 
+      "focus": ["schema-design", "migrations", "optimization"]
+    }
+  }
+}
+}

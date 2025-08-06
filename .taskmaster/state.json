@@ -1,0 +1,11 @@
+{
+  "currentTag": "master",
+  "tags": {
+    "master": {
+      "description": "Main task list for TreinosApp",
+      "createdAt": "2024-01-06T00:00:00.000Z",
+      "lastModified": "2024-01-06T00:00:00.000Z"
+    }
+  },
+  "migrationNoticeShown": true
+}

@@ -1,0 +1,51 @@
+{
+  "allowedTools": [
+    "Edit",
+    "MultiEdit", 
+    "Read",
+    "Write",
+    "Bash",
+    "Glob",
+    "Grep",
+    "TodoWrite",
+    "Task",
+    "mcp__task_master_ai__*",
+    "mcp__context7__*",
+    "mcp__claude_flow__*",
+    "Bash(npm *)",
+    "Bash(npx *)",
+    "Bash(git *)",
+    "Bash(task-master *)"
+  ],
+  "mcpIntegration": {
+    "preferMCP": true,
+    "autoActivateContext7": true,
+    "taskMasterSync": true,
+    "claudeFlowOrchestration": true
+  },
+  "workflowSettings": {
+    "autoFlags": {
+      "context7": ["--c7", "--context7"],
+      "sequential": ["--seq", "--sequential"], 
+      "delegation": ["--delegate", "--parallel-dirs"],
+      "thinking": ["--think", "--think-hard"]
+    },
+    "triggerPatterns": {
+      "api_integration": ["rapidapi", "exercisedb", "external api"],
+      "react_native": ["component", "navigation", "expo", "react-native"],
+      "backend": ["node.js", "express", "authentication", "jwt"],
+      "database": ["prisma", "postgresql", "asyncstorage", "sync"]
+    }
+  },
+  "qualityGates": {
+    "preBuild": ["lint", "type-check"],
+    "preCommit": ["test", "format"],
+    "preDelploy": ["build", "e2e-test"]
+  },
+  "contextOptimization": {
+    "maxTokens": 40000,
+    "compressionThreshold": 0.75,
+    "prioritizeRecent": true,
+    "cachePatterns": true
+  }
+}

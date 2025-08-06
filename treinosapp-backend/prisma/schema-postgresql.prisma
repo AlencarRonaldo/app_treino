@@ -1,0 +1,390 @@
+// TreinosApp Database Schema
+// Schema do banco de dados para aplicativo de fitness brasileiro
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de usuário
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String?  // Nullable para OAuth users
+  name              String
+  profilePicture    String?
+  userType          UserType @default(STUDENT)
+  isEmailVerified   Boolean  @default(false)
+  emailVerifyToken  String?
+  resetPasswordToken String?
+  resetPasswordExpires DateTime?
+  
+  // Informações pessoais
+  dateOfBirth       DateTime?
+  gender            Gender?
+  height            Float?   // em cm
+  weight            Float?   // em kg
+  activityLevel     ActivityLevel?
+  goals             String[] // Array de objetivos
+  
+  // OAuth fields
+  googleId          String?  @unique
+  
+  // Configurações
+  preferredLanguage String   @default("pt-BR")
+  timezone          String   @default("America/Sao_Paulo")
+  notifications     Json     @default("{\"workout\": true, \"progress\": true, \"social\": true}")
+
+  // Datas
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLoginAt       DateTime?
+
+  // Relacionamentos
+  workouts          Workout[]
+  customExercises   Exercise[]
+  workoutLogs       WorkoutLog[]
+  progressEntries   ProgressEntry[]
+  students          User[]   @relation("PersonalTrainerStudents")
+  personalTrainer   User?    @relation("PersonalTrainerStudents", fields: [personalTrainerId], references: [id])
+  personalTrainerId String?
+  
+  // Relacionamentos de compartilhamento
+  sharedWorkouts    WorkoutShare[]
+  receivedWorkouts  WorkoutShare[] @relation("SharedWithUser")
+  
+  // AI Usage tracking
+  aiUsage           AIUsage[]
+  
+  @@map("users")
+}
+
+// Modelo de exercício
+model Exercise {
+  id                String       @id @default(cuid())
+  name              String
+  nameEn            String?      // Nome em inglês (opcional)
+  description       String
+  instructions      String[]     // Array de instruções passo a passo
+  category          ExerciseCategory
+  muscleGroups      MuscleGroup[]
+  equipment         Equipment[]  // Equipamentos necessários
+  difficulty        Difficulty   @default(BEGINNER)
+  
+  // Mídia
+  images            String[]     // URLs das imagens
+  videoUrl          String?      // URL do vídeo demonstrativo
+  
+  // Metadata
+  isPublic          Boolean      @default(true)
+  isOfficial        Boolean      @default(false) // Exercícios oficiais do sistema
+  tags              String[]     // Tags para busca
+  
+  // Relacionamentos
+  creator           User?        @relation(fields: [creatorId], references: [id])
+  creatorId         String?
+  workoutExercises  WorkoutExercise[]
+  exerciseLogs      ExerciseLog[]
+  
+  // Datas
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  
+  @@map("exercises")
+}
+
+// Modelo de treino
+model Workout {
+  id                String       @id @default(cuid())
+  name              String
+  description       String?
+  category          WorkoutCategory
+  difficulty        Difficulty   @default(BEGINNER)
+  estimatedDuration Int          // em minutos
+  
+  // Configurações
+  restBetweenSets   Int          @default(60)   // segundos
+  restBetweenExercises Int       @default(120)  // segundos
+  isTemplate        Boolean      @default(false)
+  isPublic          Boolean      @default(false)
+  
+  // Metadata
+  tags              String[]
+  targetMuscleGroups MuscleGroup[]
+  equipment         Equipment[]
+  
+  // Relacionamentos
+  creator           User         @relation(fields: [creatorId], references: [id])
+  creatorId         String
+  exercises         WorkoutExercise[]
+  workoutLogs       WorkoutLog[]
+  shares            WorkoutShare[]
+  
+  // Datas
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  
+  @@map("workouts")
+}
+
+// Modelo de exercício dentro de um treino
+model WorkoutExercise {
+  id                String   @id @default(cuid())
+  order             Int      // Ordem do exercício no treino
+  sets              Int
+  reps              String   // Pode ser "12", "8-12", "até falha", etc.
+  weight            Float?   // Peso sugerido em kg
+  duration          Int?     // Duração em segundos (para exercícios de tempo)
+  restTime          Int?     // Tempo de descanso específico para este exercício
+  notes             String?  // Observações específicas
+  
+  // Relacionamentos
+  workout           Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  workoutId         String
+  exercise          Exercise @relation(fields: [exerciseId], references: [id])
+  exerciseId        String
+  
+  // Datas
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@unique([workoutId, order])
+  @@map("workout_exercises")
+}
+
+// Modelo de log de treino (execução de treino)
+model WorkoutLog {
+  id                String      @id @default(cuid())
+  startedAt         DateTime
+  completedAt       DateTime?
+  duration          Int?        // Duração real em minutos
+  notes             String?
+  rating            Int?        @db.SmallInt // 1-5 estrelas
+  
+  // Relacionamentos
+  user              User        @relation(fields: [userId], references: [id])
+  userId            String
+  workout           Workout     @relation(fields: [workoutId], references: [id])
+  workoutId         String
+  exerciseLogs      ExerciseLog[]
+  
+  // Datas
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  
+  @@map("workout_logs")
+}
+
+// Modelo de log de exercício (execução de exercício dentro de um treino)
+model ExerciseLog {
+  id                String     @id @default(cuid())
+  setNumber         Int
+  reps              Int?
+  weight            Float?     // Peso usado em kg
+  duration          Int?       // Duração em segundos
+  restTime          Int?       // Tempo de descanso real
+  notes             String?
+  completed         Boolean    @default(true)
+  
+  // Relacionamentos
+  workoutLog        WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
+  workoutLogId      String
+  exercise          Exercise   @relation(fields: [exerciseId], references: [id])
+  exerciseId        String
+  
+  // Datas
+  createdAt         DateTime   @default(now())
+  
+  @@map("exercise_logs")
+}
+
+// Modelo de entrada de progresso
+model ProgressEntry {
+  id                String       @id @default(cuid())
+  type              ProgressType
+  value             Float
+  unit              String       // kg, cm, %, etc.
+  notes             String?
+  
+  // Relacionamentos
+  user              User         @relation(fields: [userId], references: [id])
+  userId            String
+  
+  // Datas
+  recordedAt        DateTime     @default(now())
+  createdAt         DateTime     @default(now())
+  
+  @@map("progress_entries")
+}
+
+// Modelo de compartilhamento de treino
+model WorkoutShare {
+  id                String   @id @default(cuid())
+  
+  // Relacionamentos
+  workout           Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  workoutId         String
+  sharedBy          User     @relation(fields: [sharedById], references: [id])
+  sharedById        String
+  sharedWith        User     @relation("SharedWithUser", fields: [sharedWithId], references: [id])
+  sharedWithId      String
+  
+  // Datas
+  sharedAt          DateTime @default(now())
+  
+  @@unique([workoutId, sharedById, sharedWithId])
+  @@map("workout_shares")
+}
+
+// Modelo de uso de IA
+model AIUsage {
+  id                String   @id @default(cuid())
+  type              AIUsageType
+  tokensUsed        Int
+  cost              Float?   // Custo em créditos/reais
+  
+  // Relacionamentos
+  user              User     @relation(fields: [userId], references: [id])
+  userId            String
+  
+  // Datas
+  usedAt            DateTime @default(now())
+  
+  @@map("ai_usage")
+}
+
+// Enums
+enum UserType {
+  STUDENT
+  PERSONAL_TRAINER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHTLY_ACTIVE
+  MODERATELY_ACTIVE
+  VERY_ACTIVE
+  EXTREMELY_ACTIVE
+}
+
+enum ExerciseCategory {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  MOBILITY
+  PLYOMETRIC
+  ISOMETRIC
+  FUNCTIONAL
+  REHABILITATION
+  WARM_UP
+  COOL_DOWN
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  FOREARMS
+  ABS
+  OBLIQUES
+  QUADRICEPS
+  HAMSTRINGS
+  CALVES
+  GLUTES
+  FULL_BODY
+  CORE
+  UPPER_BODY
+  LOWER_BODY
+}
+
+enum Equipment {
+  BODYWEIGHT
+  BARBELL
+  DUMBBELL
+  KETTLEBELL
+  RESISTANCE_BAND
+  PULL_UP_BAR
+  BENCH
+  CABLE_MACHINE
+  SMITH_MACHINE
+  LEG_PRESS
+  TREADMILL
+  STATIONARY_BIKE
+  ELLIPTICAL
+  ROWING_MACHINE
+  BATTLE_ROPES
+  MEDICINE_BALL
+  BOSU_BALL
+  STABILITY_BALL
+  FOAM_ROLLER
+  YOGA_MAT
+  TRX
+  PARALLETTES
+  GYMNASTIC_RINGS
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum WorkoutCategory {
+  STRENGTH_TRAINING
+  CARDIO
+  HIIT
+  CROSSFIT
+  BODYBUILDING
+  POWERLIFTING
+  CALISTHENICS
+  FUNCTIONAL
+  YOGA
+  PILATES
+  STRETCHING
+  REHABILITATION
+  SPORTS_SPECIFIC
+  MARTIAL_ARTS
+  DANCE
+  OUTDOOR
+}
+
+enum ProgressType {
+  WEIGHT
+  BODY_FAT
+  MUSCLE_MASS
+  BMI
+  WAIST_CIRCUMFERENCE
+  CHEST_CIRCUMFERENCE
+  ARM_CIRCUMFERENCE
+  THIGH_CIRCUMFERENCE
+  MAX_BENCH_PRESS
+  MAX_SQUAT
+  MAX_DEADLIFT
+  MAX_PULL_UPS
+  RUNNING_DISTANCE
+  RUNNING_TIME
+  CUSTOM
+}
+
+enum AIUsageType {
+  WORKOUT_GENERATION
+  EXERCISE_RECOMMENDATION
+  NUTRITION_ADVICE
+  FORM_ANALYSIS
+  PROGRESS_ANALYSIS
+}

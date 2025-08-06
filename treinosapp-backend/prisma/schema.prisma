@@ -1,0 +1,227 @@
+// TreinosApp Database Schema - SQLite Version (Para Testes)
+// Versão simplificada para desenvolvimento e testes rápidos
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de usuário
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  password          String?  
+  name              String
+  profilePicture    String?
+  userType          UserType @default(STUDENT)
+  
+  // Dados físicos
+  height            Int?     // altura em cm
+  weight            Float?   // peso em kg
+  birthDate         DateTime?
+  gender            Gender?
+  
+  // Fitness
+  fitnessLevel      FitnessLevel?
+  primaryGoal       String?  // Simplificado para SQLite
+  activityLevel     ActivityLevel?
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLogin         DateTime?
+  emailVerified     Boolean  @default(false)
+  
+  // Relacionamentos
+  workouts          Workout[]
+  customExercises   Exercise[]
+  progressRecords   ProgressRecord[]
+  workoutSessions   WorkoutSession[]
+  
+  // Personal Trainer relationships
+  trainedStudents   User[] @relation("TrainerStudent")
+  trainer           User?  @relation("TrainerStudent", fields: [trainerId], references: [id])
+  trainerId         String?
+  
+  @@map("users")
+}
+
+// Modelo de exercício simplificado
+model Exercise {
+  id                String   @id @default(cuid())
+  name              String
+  description       String
+  instructions      String   // JSON string para SQLite
+  category          ExerciseCategory
+  muscleGroups      String   // JSON string: ["peito", "triceps"]
+  equipment         String   // JSON string: ["barra", "banco"]
+  difficulty        Difficulty @default(BEGINNER)
+  
+  // Mídia
+  imageUrl          String?
+  videoUrl          String?
+  
+  // Metadata
+  isOfficial        Boolean  @default(false)
+  tags              String?  // JSON string
+  
+  // Relacionamentos
+  createdBy         User?    @relation(fields: [createdById], references: [id])
+  createdById       String?
+  workoutExercises  WorkoutExercise[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("exercises")
+}
+
+// Modelo de treino simplificado
+model Workout {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?
+  category          WorkoutCategory @default(CUSTOM)
+  
+  // Configurações
+  estimatedDuration Int?     // minutos
+  difficulty        Difficulty @default(BEGINNER)
+  isTemplate        Boolean  @default(false)
+  isPublic          Boolean  @default(false)
+  
+  // Metadata simplificada
+  tags              String?  // JSON string
+  targetMuscleGroups String? // JSON string
+  equipment         String?  // JSON string
+  
+  // Relacionamentos
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises         WorkoutExercise[]
+  sessions          WorkoutSession[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("workouts")
+}
+
+// Exercícios dentro do treino
+model WorkoutExercise {
+  id                String   @id @default(cuid())
+  order             Int
+  sets              Int
+  reps              String   // "8-12" ou "30 segundos"
+  weight            Float?
+  restTime          Int?     // segundos
+  notes             String?
+  
+  // Relacionamentos
+  workoutId         String
+  workout           Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId        String
+  exercise          Exercise @relation(fields: [exerciseId], references: [id])
+  
+  @@map("workout_exercises")
+}
+
+// Sessão de treino (execução)
+model WorkoutSession {
+  id                String   @id @default(cuid())
+  startTime         DateTime
+  endTime           DateTime?
+  duration          Int?     // minutos
+  completed         Boolean  @default(false)
+  rating            Int?     // 1-5 estrelas
+  notes             String?
+  
+  // Relacionamentos
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutId         String
+  workout           Workout  @relation(fields: [workoutId], references: [id])
+  
+  createdAt         DateTime @default(now())
+  
+  @@map("workout_sessions")
+}
+
+// Registro de progresso simplificado
+model ProgressRecord {
+  id                String   @id @default(cuid())
+  type              ProgressType
+  value             Float
+  unit              String   // "kg", "cm", "min", etc
+  notes             String?
+  date              DateTime @default(now())
+  
+  // Relacionamentos
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("progress_records")
+}
+
+// Enums
+enum UserType {
+  STUDENT
+  PERSONAL_TRAINER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum FitnessLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHTLY_ACTIVE
+  MODERATELY_ACTIVE
+  VERY_ACTIVE
+  EXTREMELY_ACTIVE
+}
+
+enum ExerciseCategory {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  SPORTS
+  FUNCTIONAL
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum WorkoutCategory {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  HIIT
+  CROSSTRAINING
+  SPORTS
+  CUSTOM
+}
+
+enum ProgressType {
+  WEIGHT
+  BODY_FAT
+  MUSCLE_MASS
+  MEASUREMENTS
+  PERFORMANCE
+  PHOTOS
+}
