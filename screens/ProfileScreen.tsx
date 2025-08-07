@@ -519,7 +519,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: Math.max(SPACING.XXL * 2, safeArea.paddingBottom + 50),
+    flexGrow: 1,
+    paddingBottom: Math.max(120, safeArea.paddingBottom + 100),
   },
   profileHeader: {
     alignItems: 'center',

@@ -118,7 +118,11 @@ export default function HomeScreen() {
 
   return (
     <FigmaScreen>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.container} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Header simples */}
         <View style={styles.header}>
           <Text style={styles.greetingText}>{getGreeting()}</Text>
@@ -480,7 +484,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <View style={styles.bottomSpacing} />
       </ScrollView>
       
       {/* Debug info para desenvolvimento */}
@@ -506,6 +509,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: FigmaTheme.colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: Math.max(120, safeArea.paddingBottom + 100),
   },
   header: {
     paddingHorizontal: layout.containerPadding,
@@ -690,8 +697,5 @@ const styles = StyleSheet.create({
     color: FigmaTheme.colors.textSecondary,
     ...TYPOGRAPHY.BODY_SMALL,
     marginTop: SPACING.XXS,
-  },
-  bottomSpacing: {
-    height: Math.max(SPACING.XXL * 2, safeArea.paddingBottom),
   },
 });
