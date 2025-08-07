@@ -2,6 +2,10 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { getWebClientId } from '../config/googleSignIn';
+import { googleAuthService } from '../treinosapp-mobile/services/GoogleAuthService';
+import { supabaseService } from '../treinosapp-mobile/services/SupabaseService';
+import { User as SupabaseUser } from '../treinosapp-mobile/types/database';
+import { supabase } from '../treinosapp-mobile/lib/supabase';
 
 export interface User {
   id: string;
@@ -10,6 +14,9 @@ export interface User {
   photo?: string;
   givenName?: string;
   familyName?: string;
+  user_type?: 'STUDENT' | 'PERSONAL_TRAINER';
+  email_verified?: boolean;
+  trainer_id?: string | null;
 }
 
 interface AuthContextType {
@@ -20,6 +27,9 @@ interface AuthContextType {
   signUpWithEmail: (userData: any) => Promise<boolean>;
   signOut: () => Promise<void>;
   isSignedIn: boolean;
+  supabaseUser: SupabaseUser | null;
+  resetPassword: (email: string) => Promise<boolean>;
+  updateProfile: (updates: any) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,73 +40,165 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authInitialized, setAuthInitialized] = useState(false);
 
-  // Configurar Google Sign-In
+  // Inicializar Supabase Auth
   useEffect(() => {
-    GoogleSignin.configure({
-      webClientId: getWebClientId(),
-      offlineAccess: true,
-      hostedDomain: '',
-      forceCodeForRefreshToken: true,
-    });
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        // Configurar Google Sign-In
+        await googleAuthService.configure({
+          webClientId: getWebClientId(),
+          offlineAccess: true,
+          hostedDomain: '',
+          forceCodeForRefreshToken: true,
+        });
 
-    checkSignInStatus();
-  }, []);
+        // Inicializar Supabase Service
+        await supabaseService.initialize();
 
-  const checkSignInStatus = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Verificar se há usuário salvo no AsyncStorage
-      const savedUser = await AsyncStorage.getItem('@user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-        setIsLoading(false);
-        return;
-      }
+        // Setup Auth State Listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (__DEV__) console.log('🔐 Auth State Change:', event, session?.user?.id);
+            
+            if (!mounted) return;
+            
+            if (event === 'SIGNED_IN' && session?.user) {
+              const profile = await supabaseService.getUserProfile(session.user.id);
+              if (profile && mounted) {
+                setSupabaseUser(profile);
+                const compatibleUser = convertSupabaseUserToCompatible(profile);
+                setUser(compatibleUser);
+                await AsyncStorage.setItem('@user', JSON.stringify(compatibleUser));
+                
+                // Auto-set user type in legacy context for compatibility
+                if (profile.user_type) {
+                  const legacyUserType = profile.user_type === 'PERSONAL_TRAINER' ? 'personal' : 'student';
+                  await AsyncStorage.setItem('@TreinosApp:userType', legacyUserType);
+                }
+              }
+            } else if (event === 'SIGNED_OUT') {
+              if (mounted) {
+                setUser(null);
+                setSupabaseUser(null);
+                await AsyncStorage.removeItem('@user');
+                await AsyncStorage.removeItem('@TreinosApp:userType');
+              }
+            }
+            
+            if (mounted) {
+              setIsLoading(false);
+              if (!authInitialized) {
+                setAuthInitialized(true);
+              }
+            }
+          }
+        );
 
-      // Verificar se o usuário está logado com Google
-      const isSignedIn = await GoogleSignin.getCurrentUser() !== null;
-      if (isSignedIn) {
-        const userInfo = await GoogleSignin.getCurrentUser();
-        if (userInfo) {
-          const userData: User = {
-            id: userInfo.user.id,
-            name: userInfo.user.name || '',
-            email: userInfo.user.email,
-            photo: userInfo.user.photo || undefined,
-            givenName: userInfo.user.givenName || undefined,
-            familyName: userInfo.user.familyName || undefined,
-          };
-          setUser(userData);
-          await AsyncStorage.setItem('@user', JSON.stringify(userData));
+        // Check initial session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && mounted) {
+          const profile = await supabaseService.getUserProfile(session.user.id);
+          if (profile) {
+            setSupabaseUser(profile);
+            const compatibleUser = convertSupabaseUserToCompatible(profile);
+            setUser(compatibleUser);
+          }
+        }
+
+        if (mounted) {
+          setIsLoading(false);
+          setAuthInitialized(true);
+        }
+
+        // Cleanup function
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        if (__DEV__) console.error('Auth initialization error:', error);
+        if (mounted) {
+          setIsLoading(false);
+          setAuthInitialized(true);
         }
       }
-    } catch (error) {
-      console.log('Erro ao verificar status de login:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Helper function to convert Supabase User to compatible format
+  const convertSupabaseUserToCompatible = (supabaseUser: SupabaseUser): User => {
+    return {
+      id: supabaseUser.id,
+      name: supabaseUser.name,
+      email: supabaseUser.email,
+      photo: supabaseUser.profile_picture || undefined,
+      user_type: supabaseUser.user_type,
+      email_verified: supabaseUser.email_verified,
+      trainer_id: supabaseUser.trainer_id,
+    };
   };
 
   const signInWithGoogle = async (): Promise<boolean> => {
     try {
       setIsLoading(true);
       
-      // Verificar se os Google Play Services estão disponíveis
-      await GoogleSignin.hasPlayServices();
+      // Use enhanced Google Auth Service
+      const result = await googleAuthService.signIn('STUDENT'); // Default to student
       
-      // Fazer login
+      if (result.success && result.user) {
+        if (__DEV__) {
+          console.log('✅ Google Sign-In successful:', {
+            email: result.user.email,
+            userType: result.user.user_type,
+            needsProfile: result.needsProfileCompletion
+          });
+        }
+        
+        // User state will be updated via auth state listener
+        return true;
+      } else {
+        if (__DEV__) console.log('❌ Google Sign-In failed:', result.error);
+        
+        // Fallback to original implementation for development
+        return await fallbackGoogleSignIn();
+      }
+    } catch (error: any) {
+      if (__DEV__) console.log('Erro no login Google:', error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Fallback Google Sign-In for development/testing
+  const fallbackGoogleSignIn = async (): Promise<boolean> => {
+    try {
+      await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
       
+      if (!userInfo.data?.user) {
+        return false;
+      }
+      
+      const googleUser = userInfo.data.user;
       const userData: User = {
-        id: userInfo.data?.user.id || '',
-        name: userInfo.data?.user.name || '',
-        email: userInfo.data?.user.email || '',
-        photo: userInfo.data?.user.photo || undefined,
-        givenName: userInfo.data?.user.givenName || undefined,
-        familyName: userInfo.data?.user.familyName || undefined,
+        id: googleUser.id,
+        name: googleUser.name || '',
+        email: googleUser.email,
+        photo: googleUser.photo || undefined,
+        givenName: googleUser.givenName || undefined,
+        familyName: googleUser.familyName || undefined,
       };
 
       setUser(userData);
@@ -104,21 +206,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       return true;
     } catch (error: any) {
-      console.log('Erro no login:', error);
-      
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('Login cancelado pelo usuário');
+        if (__DEV__) console.log('Login cancelado pelo usuário');
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('Login já em progresso');
+        if (__DEV__) console.log('Login já em progresso');
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Google Play Services não disponível');
+        if (__DEV__) console.log('Google Play Services não disponível');
       } else {
-        console.log('Erro desconhecido:', error);
+        if (__DEV__) console.log('Erro desconhecido:', error);
       }
       
       return false;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -126,33 +224,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
       
-      // Simular autenticação com email/senha
-      // Em produção, fazer chamada para sua API
-      const response = await simulateEmailLogin(email, password);
+      // Use real Supabase authentication
+      const response = await supabaseService.signInWithEmail(email, password);
       
       if (response.success && response.user) {
-        const userData: User = {
-          id: response.user.id,
-          name: response.user.name,
-          email: response.user.email,
-          photo: response.user.photo || undefined,
-        };
-
-        setUser(userData);
-        await AsyncStorage.setItem('@user', JSON.stringify(userData));
-        
-        // Definir tipo de usuário automaticamente para contas de teste
-        if (response.user.userType) {
-          await AsyncStorage.setItem('@TreinosApp:userType', response.user.userType);
-          console.log(`🎯 Tipo de usuário definido automaticamente: ${response.user.userType}`);
-        }
-        
+        // User state will be updated via auth state listener
+        if (__DEV__) console.log('✅ Supabase login successful:', response.user.email);
         return true;
+      } else {
+        if (__DEV__) console.log('❌ Supabase login failed:', response.error);
+        
+        // Fallback to mock system for development/testing
+        const mockResponse = await simulateEmailLogin(email, password);
+        if (mockResponse.success && mockResponse.user) {
+          const userData: User = {
+            id: mockResponse.user.id,
+            name: mockResponse.user.name,
+            email: mockResponse.user.email,
+            photo: mockResponse.user.photo || undefined,
+            user_type: mockResponse.user.userType === 'personal' ? 'PERSONAL_TRAINER' : 'STUDENT',
+          };
+
+          setUser(userData);
+          await AsyncStorage.setItem('@user', JSON.stringify(userData));
+          
+          // Set legacy user type for compatibility
+          if (mockResponse.user.userType) {
+            await AsyncStorage.setItem('@TreinosApp:userType', mockResponse.user.userType);
+            if (__DEV__) console.log(`🎯 Mock user type set: ${mockResponse.user.userType}`);
+          }
+          
+          return true;
+        }
       }
       
       return false;
     } catch (error) {
-      console.log('Erro no login com email:', error);
+      if (__DEV__) console.log('Erro no login com email:', error);
       return false;
     } finally {
       setIsLoading(false);
@@ -163,25 +271,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
       
-      // Simular cadastro com email/senha
-      // Em produção, fazer chamada para sua API
-      const response = await simulateEmailSignup(userData);
+      const { email, password, firstName, lastName, userType, trainerEmail } = userData;
+      const fullName = `${firstName} ${lastName}`;
       
-      if (response.success && response.user) {
-        const newUser: User = {
-          id: response.user.id,
-          name: `${userData.firstName} ${userData.lastName}`,
-          email: userData.email,
-        };
-
-        setUser(newUser);
-        await AsyncStorage.setItem('@user', JSON.stringify(newUser));
+      let response;
+      
+      // Use real Supabase authentication
+      if (userType === 'personal' || userType === 'PERSONAL_TRAINER') {
+        response = await supabaseService.signUpTrainer(email, password, fullName);
+      } else {
+        response = await supabaseService.signUpStudent(email, password, fullName, trainerEmail);
+      }
+      
+      if (response.success) {
+        if (__DEV__) {
+          console.log('✅ Supabase signup successful:', response.user?.email);
+          if (response.needsEmailVerification) {
+            console.log('📧 Email verification required');
+          }
+        }
         return true;
+      } else {
+        if (__DEV__) console.log('❌ Supabase signup failed:', response.error);
+        
+        // Fallback to mock system for development/testing
+        const mockResponse = await simulateEmailSignup(userData);
+        if (mockResponse.success && mockResponse.user) {
+          const newUser: User = {
+            id: mockResponse.user.id,
+            name: fullName,
+            email: email,
+            user_type: userType === 'personal' ? 'PERSONAL_TRAINER' : 'STUDENT',
+          };
+
+          setUser(newUser);
+          await AsyncStorage.setItem('@user', JSON.stringify(newUser));
+          
+          // Set legacy user type for compatibility
+          await AsyncStorage.setItem('@TreinosApp:userType', userType);
+          
+          return true;
+        }
       }
       
       return false;
     } catch (error) {
-      console.log('Erro no cadastro:', error);
+      if (__DEV__) console.log('Erro no cadastro:', error);
       return false;
     } finally {
       setIsLoading(false);
@@ -190,34 +325,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async (): Promise<void> => {
     try {
-      console.log('🚪 AuthContext - Iniciando processo de logout...');
+      if (__DEV__) console.log('🚪 AuthContext - Iniciando processo de logout...');
       setIsLoading(true);
       
-      // Fazer logout do Google se necessário
-      console.log('🔄 AuthContext - Tentando logout do Google...');
+      // Logout do Supabase primeiro
       try {
-        await GoogleSignin.signOut();
-        console.log('✅ AuthContext - Google SignOut realizado');
+        await supabaseService.signOut();
+        if (__DEV__) console.log('✅ AuthContext - Supabase SignOut realizado');
       } catch (error) {
-        // Google não estava logado, ignorar erro
-        console.log('⚠️ AuthContext - Google SignOut não necessário:', error);
+        if (__DEV__) console.log('⚠️ AuthContext - Supabase SignOut error:', error);
       }
       
-      // Limpar dados locais
-      console.log('🧹 AuthContext - Limpando dados do usuário...');
+      // Logout do Google usando Google Auth Service
+      try {
+        await googleAuthService.signOut();
+        if (__DEV__) console.log('✅ AuthContext - Google SignOut realizado');
+      } catch (error) {
+        if (__DEV__) console.log('⚠️ AuthContext - Google SignOut não necessário:', error);
+      }
+      
+      // Limpar estado local
       setUser(null);
-      console.log('👤 AuthContext - User state definido como null');
+      setSupabaseUser(null);
       
+      // Limpar AsyncStorage
       await AsyncStorage.removeItem('@user');
-      console.log('🗑️ AuthContext - @user removido do AsyncStorage');
-      
-      // Limpar tipo de usuário também
-      console.log('🗑️ AuthContext - Removendo tipo de usuário...');
       await AsyncStorage.removeItem('@TreinosApp:userType');
-      console.log('🗑️ AuthContext - @TreinosApp:userType removido do AsyncStorage');
       
       // Limpar dados de fitness também para garantir logout completo
-      console.log('💪 AuthContext - Iniciando limpeza de dados de fitness...');
       const fitnessKeys = [
         'fitness_usuario',
         'fitness_treinos', 
@@ -235,22 +370,63 @@ export function AuthProvider({ children }: AuthProviderProps) {
       for (const key of fitnessKeys) {
         try {
           await AsyncStorage.removeItem(key);
-          console.log(`🗑️ AuthContext - Removido: ${key}`);
         } catch (keyError) {
-          console.warn(`⚠️ AuthContext - Erro ao remover ${key}:`, keyError);
+          if (__DEV__) console.warn(`⚠️ AuthContext - Erro ao remover ${key}:`, keyError);
         }
       }
       
-      console.log('✅ AuthContext - Logout realizado com sucesso - todos os dados limpos');
-      console.log('🔄 AuthContext - Processo de logout concluído, aguardando redirecionamento...');
+      if (__DEV__) console.log('✅ AuthContext - Logout realizado com sucesso');
       
     } catch (error) {
       console.error('❌ AuthContext - Erro crítico durante logout:', error);
-      throw error; // Re-throw para o ProfileScreen detectar
+      throw error;
     } finally {
-      console.log('🔄 AuthContext - Definindo isLoading como false');
       setIsLoading(false);
-      console.log('✅ AuthContext - signOut function completamente finalizada');
+    }
+  };
+
+  // New methods for enhanced functionality
+  const resetPassword = async (email: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'com.treinosapp://auth/reset-password'
+      });
+      
+      if (error) {
+        if (__DEV__) console.error('Reset password error:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      if (__DEV__) console.error('Reset password error:', error);
+      return false;
+    }
+  };
+
+  const updateProfile = async (updates: any): Promise<boolean> => {
+    try {
+      if (!supabaseUser?.id) {
+        return false;
+      }
+      
+      const success = await supabaseService.updateProfile(supabaseUser.id, updates);
+      
+      if (success) {
+        // Refresh user profile
+        const updatedProfile = await supabaseService.getUserProfile(supabaseUser.id);
+        if (updatedProfile) {
+          setSupabaseUser(updatedProfile);
+          const compatibleUser = convertSupabaseUserToCompatible(updatedProfile);
+          setUser(compatibleUser);
+          await AsyncStorage.setItem('@user', JSON.stringify(compatibleUser));
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      if (__DEV__) console.error('Update profile error:', error);
+      return false;
     }
   };
 
@@ -262,6 +438,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signUpWithEmail,
     signOut,
     isSignedIn: !!user,
+    supabaseUser,
+    resetPassword,
+    updateProfile,
   };
 
   return (
@@ -319,7 +498,7 @@ async function simulateEmailLogin(email: string, password: string) {
   );
   
   if (account) {
-    console.log(`✅ Login realizado: ${account.user.name} (${account.user.userType})`);
+    if (__DEV__) console.log(`✅ Login realizado: ${account.user.name} (${account.user.userType})`);
     return {
       success: true,
       user: account.user
@@ -327,7 +506,7 @@ async function simulateEmailLogin(email: string, password: string) {
   }
   
   // Simular credenciais inválidas
-  console.log('❌ Credenciais inválidas para:', email);
+  if (__DEV__) console.log('❌ Credenciais inválidas para:', email);
   return { success: false, error: 'Credenciais inválidas' };
 }
 

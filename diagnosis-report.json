@@ -1,0 +1,130 @@
+{
+  "timestamp": "2025-08-06T01:05:28.676Z",
+  "url": "http://localhost:8095",
+  "consoleErrors": [
+    {
+      "type": "info",
+      "message": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+      "location": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:26768:22",
+      "timestamp": "2025-08-06T01:05:30.020Z"
+    },
+    {
+      "type": "warning",
+      "message": "\"shadow*\" style props are deprecated. Use \"boxShadow\".",
+      "location": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:33141:14",
+      "timestamp": "2025-08-06T01:05:30.265Z"
+    },
+    {
+      "type": "pageerror",
+      "message": "(0 , _expoModulesCore.registerWebModule) is not a function",
+      "stack": "TypeError: (0 , _expoModulesCore.registerWebModule) is not a function\n    at http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:64389:75\n    at loadModuleImplementation (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:256:7)\n    at guardedLoadModule (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:163:14)\n    at metroRequire (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:83:75)\n    at http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:64359:47\n    at loadModuleImplementation (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:256:7)\n    at guardedLoadModule (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:163:14)\n    at metroRequire (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:83:75)\n    at http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:62027:20\n    at loadModuleImplementation (http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:256:7)",
+      "timestamp": "2025-08-06T01:05:30.272Z"
+    },
+    {
+      "type": "log",
+      "message": "📡 Network Status: ONLINE",
+      "location": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:135371:18",
+      "timestamp": "2025-08-06T01:05:30.275Z"
+    },
+    {
+      "type": "log",
+      "message": "📡 Network Status: ONLINE",
+      "location": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:135371:18",
+      "timestamp": "2025-08-06T01:05:30.276Z"
+    },
+    {
+      "type": "log",
+      "message": "📡 Network Status: ONLINE",
+      "location": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:135371:18",
+      "timestamp": "2025-08-06T01:05:30.276Z"
+    },
+    {
+      "type": "log",
+      "message": "📡 Network Status: ONLINE",
+      "location": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:135371:18",
+      "timestamp": "2025-08-06T01:05:30.528Z"
+    },
+    {
+      "type": "warning",
+      "message": "Deprecated API for given entry type.",
+      "location": ":8:0",
+      "timestamp": "2025-08-06T01:05:36.572Z"
+    }
+  ],
+  "networkRequests": [
+    {
+      "url": "http://localhost:8095/",
+      "method": "GET",
+      "timestamp": "2025-08-06T01:05:29.290Z",
+      "headers": {
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      }
+    },
+    {
+      "url": "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+      "method": "GET",
+      "timestamp": "2025-08-06T01:05:29.324Z",
+      "headers": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "http://localhost:8095/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0"
+      }
+    },
+    {
+      "url": "http://localhost:8095/",
+      "method": "HEAD",
+      "timestamp": "2025-08-06T01:05:30.275Z",
+      "headers": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "http://localhost:8095/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0"
+      }
+    },
+    {
+      "url": "http://localhost:8095/",
+      "method": "HEAD",
+      "timestamp": "2025-08-06T01:05:30.276Z",
+      "headers": {
+        "sec-ch-ua-platform": "\"Windows\"",
+        "referer": "http://localhost:8095/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+        "sec-ch-ua": "\"Chromium\";v=\"139\", \"Not;A=Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0"
+      }
+    }
+  ],
+  "failedRequests": [],
+  "domElements": {
+    "bodyChildren": 3,
+    "bodyInnerHTML": "\n    <!-- Use static rendering with Expo Router to support running without JavaScript. -->\n    <noscript>\n      You need to enable JavaScript to run this app.\n    </noscript>\n    <!-- The root element for your Expo app. -->\n    <div id=\"root\"></div>\n  <script src=\"/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&amp;dev=true&amp;hot=false&amp;lazy=true&amp;transform.engine=hermes&amp;transform.routerRoot=app\" defer=\"\"></script>\n\n...",
+    "rootExists": true,
+    "rootChildren": 0,
+    "rootInnerHTML": "...",
+    "title": "TreinosApp",
+    "scripts": [
+      "http://localhost:8095/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app"
+    ],
+    "stylesheets": 4,
+    "errors": []
+  },
+  "performance": {
+    "pageLoadTime": 2268,
+    "domContentLoaded": null,
+    "loadComplete": null,
+    "resourceCount": 4,
+    "longTasks": 0
+  },
+  "recommendations": [],
+  "criticalError": {
+    "message": "page.screenshot: options.quality is unsupported for the png screenshots",
+    "stack": "page.screenshot: options.quality is unsupported for the png screenshots\n    at diagnosticReactNativeApp (D:\\treinosapp\\playwright-diagnostics.js:203:16)"
+  }
+}

@@ -45,7 +45,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro no registro:', error);
       
-      if (error.code === 'EMAIL_ALREADY_EXISTS') {
+      if (error.message === 'EMAIL_ALREADY_EXISTS') {
         res.status(409).json({
           success: false,
           error: {
@@ -61,7 +61,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -88,7 +88,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro no login:', error);
       
-      if (error.code === 'INVALID_CREDENTIALS') {
+      if (error.message === 'INVALID_CREDENTIALS') {
         res.status(401).json({
           success: false,
           error: {
@@ -99,7 +99,7 @@ export class AuthController {
         return;
       }
       
-      if (error.code === 'EMAIL_NOT_VERIFIED') {
+      if (error.message === 'EMAIL_NOT_VERIFIED') {
         res.status(403).json({
           success: false,
           error: {
@@ -114,7 +114,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -141,7 +141,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro na autenticação Google:', error);
       
-      if (error.code === 'INVALID_GOOGLE_TOKEN') {
+      if (error.message === 'INVALID_GOOGLE_TOKEN') {
         res.status(401).json({
           success: false,
           error: {
@@ -156,7 +156,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -183,7 +183,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro na renovação de token:', error);
       
-      if (error.code === 'INVALID_REFRESH_TOKEN') {
+      if (error.message === 'INVALID_REFRESH_TOKEN') {
         res.status(401).json({
           success: false,
           error: {
@@ -198,7 +198,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -209,7 +209,7 @@ export class AuthController {
    */
   logout = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.userId;
       
       logger.info(`Logout do usuário: ${userId}`);
       
@@ -226,7 +226,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -276,7 +276,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro na redefinição de senha:', error);
       
-      if (error.code === 'INVALID_RESET_TOKEN') {
+      if (error.message === 'INVALID_RESET_TOKEN') {
         res.status(400).json({
           success: false,
           error: {
@@ -291,7 +291,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -302,7 +302,7 @@ export class AuthController {
    */
   changePassword = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.userId;
       const changeData: ChangePasswordRequest = req.body;
       
       logger.info(`Alteração de senha para usuário: ${userId}`);
@@ -316,7 +316,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro na alteração de senha:', error);
       
-      if (error.code === 'INVALID_CURRENT_PASSWORD') {
+      if (error.message === 'INVALID_CURRENT_PASSWORD') {
         res.status(400).json({
           success: false,
           error: {
@@ -332,7 +332,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -356,7 +356,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro na verificação de email:', error);
       
-      if (error.code === 'INVALID_VERIFY_TOKEN') {
+      if (error.message === 'INVALID_VERIFY_TOKEN') {
         res.status(400).json({
           success: false,
           error: {
@@ -371,7 +371,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -382,7 +382,7 @@ export class AuthController {
    */
   resendVerification = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.userId;
       const userEmail = req.user.email;
       
       logger.info(`Reenvio de verificação de email para: ${userEmail}`);
@@ -396,7 +396,7 @@ export class AuthController {
     } catch (error: any) {
       logger.error('Erro no reenvio de verificação:', error);
       
-      if (error.code === 'EMAIL_ALREADY_VERIFIED') {
+      if (error.message === 'EMAIL_ALREADY_VERIFIED') {
         res.status(400).json({
           success: false,
           error: {
@@ -411,7 +411,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -422,7 +422,7 @@ export class AuthController {
    */
   getCurrentUser = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.userId;
       
       const user = await this.authService.getCurrentUser(userId);
       
@@ -437,7 +437,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }
@@ -466,7 +466,7 @@ export class AuthController {
         success: false,
         error: {
           message: error.message || 'Erro interno do servidor',
-          code: error.code || 'INTERNAL_ERROR'
+          code: error.message || 'INTERNAL_ERROR'
         }
       });
     }

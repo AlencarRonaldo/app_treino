@@ -72,7 +72,26 @@
       "Bash(DATABASE_URL=\"file:./dev_new.db\" npx prisma migrate reset --force)",
       "Bash(timeout 20 npm run dev)",
       "Bash(powershell:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(mv:*)",
+      "Bash(task-master set-status:*)",
+      "Bash(timeout 30 npx expo start --web --port 8095)",
+      "Bash(timeout 20 npx expo start --web --port 8096)",
+      "Bash(timeout 30 npx expo start --web --port 8095 --clear)",
+      "Bash(grep:*)",
+      "Bash(timeout 20 npx expo start --web --port 8097 --clear)",
+      "Bash(timeout 30 npx expo start --web --port 8083 --clear)",
+      "Bash(timeout 30 npx expo start --web --port 8084 --clear)",
+      "Bash(timeout 15 npx expo start --web --port 8085)",
+      "Bash(timeout 20 npx expo start --web --port 8085 --clear)",
+      "Bash(task-master list:*)",
+      "Bash(task-master:*)",
+      "Bash(timeout 30 npx expo start --web --port 8085)",
+      "Bash(PORT=3002 npm run dev)",
+      "Bash(PORT=3005 npm run dev)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

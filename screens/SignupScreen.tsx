@@ -83,10 +83,20 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
   const handleSignup = async (data: SignupFormData) => {
     try {
-      const success = await signUpWithEmail(data);
+      // Include user type in signup data
+      const signupData = {
+        ...data,
+        userType: selectedUserType
+      };
+      
+      const success = await signUpWithEmail(signupData);
       if (success) {
-        // Definir tipo de usuário após cadastro bem-sucedido
-        await setUserType(selectedUserType);
+        // User type will be set automatically by AuthContext
+        Alert.alert(
+          'Cadastro Realizado',
+          'Sua conta foi criada com sucesso! Verifique seu email para confirmar o cadastro.',
+          [{ text: 'OK' }]
+        );
       } else {
         Alert.alert(
           'Erro no Cadastro',

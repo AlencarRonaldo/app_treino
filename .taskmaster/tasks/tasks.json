@@ -401,6 +401,82 @@
           "status": "pending"
         }
       ]
+    },
+    {
+      "id": "12",
+      "title": "Sistema de Diferenciação Personal Trainer / Aluno",
+      "description": "Implementar interfaces e funcionalidades completamente distintas para Personal Trainer e Aluno, criando experiências otimizadas para cada tipo de usuário",
+      "status": "pending",
+      "priority": "critical",
+      "dependencies": ["2", "3"],
+      "details": "Criar sistema completo de diferenciação com: roles e permissões, dashboards específicos, navegação condicional, gestão de alunos (PT), chat diferenciado, analytics por tipo, e biblioteca de conteúdo personalizada. Foco em UX otimizada para cada persona.",
+      "testStrategy": "Testar controle de acesso, validar interfaces específicas por tipo, verificar fluxos de PT e Aluno, testar relacionamentos e permissões",
+      "subtasks": [
+        {
+          "id": "12.1",
+          "title": "Sistema de Roles e Permissões",
+          "description": "Criar sistema de autorização baseado em userType com controle de acesso granular",
+          "status": "pending",
+          "priority": "critical",
+          "details": "Implementar: enum UserRole (STUDENT, PERSONAL_TRAINER), função hasPermission(), middleware de autorização, sistema de guards para rotas e componentes"
+        },
+        {
+          "id": "12.2", 
+          "title": "Dashboard Diferenciado por Tipo",
+          "description": "Criar dashboards específicos para Aluno e Personal Trainer com métricas relevantes",
+          "status": "pending",
+          "priority": "high",
+          "details": "Dashboard Aluno: próximo treino, progresso semanal, metas pessoais, estatísticas próprias. Dashboard PT: resumo de alunos, métricas gerais, alertas, próximas sessões"
+        },
+        {
+          "id": "12.3",
+          "title": "Navegação Condicional",
+          "description": "Implementar menus e navegação específicos baseados no tipo de usuário",
+          "status": "pending",
+          "priority": "high", 
+          "details": "Menu Aluno: Início, Meus Treinos, Progresso, Chat. Menu PT: Dashboard, Alunos, Criar Treino, Relatórios, Biblioteca. BottomTabNavigator condicional com ícones e labels específicos"
+        },
+        {
+          "id": "12.4",
+          "title": "Área de Treinos Diferenciada",
+          "description": "Funcionalidades específicas de treino para cada tipo de usuário",
+          "status": "pending",
+          "priority": "high",
+          "details": "Aluno: visualizar treinos atribuídos, timer de execução, registrar séries/repetições. PT: criar treinos, editar templates, atribuir a alunos, monitorar execução"
+        },
+        {
+          "id": "12.5",
+          "title": "Sistema de Gestão de Alunos (Personal Trainer)",
+          "description": "Interface completa para PT gerenciar seus alunos",
+          "status": "pending",
+          "priority": "high",
+          "details": "Lista de alunos com status, adicionar/editar alunos, atribuir treinos específicos, monitorar progresso individual, notas e histórico de cada aluno"
+        },
+        {
+          "id": "12.6",
+          "title": "Sistema de Chat e Comunicação",
+          "description": "Chat diferenciado entre PT e Aluno com funcionalidades específicas",
+          "status": "pending",
+          "priority": "medium",
+          "details": "Aluno: chat 1-1 com seu personal trainer. PT: chat com múltiplos alunos, mensagens em grupo, sistema de notificações, histórico de conversas"
+        },
+        {
+          "id": "12.7",
+          "title": "Analytics e Relatórios por Tipo",
+          "description": "Sistema de analytics adaptado para cada tipo de usuário",
+          "status": "pending",
+          "priority": "medium",
+          "details": "Aluno: próprios dados de progresso, evolução pessoal, metas atingidas. PT: dashboard com métricas de todos os alunos, comparações, relatórios de desempenho, exportação de dados"
+        },
+        {
+          "id": "12.8",
+          "title": "Biblioteca de Conteúdo Personalizada (PT)",
+          "description": "Sistema para PT criar e gerenciar conteúdo personalizado",
+          "status": "pending",
+          "priority": "low",
+          "details": "Upload de vídeos personalizados, organização por categoria, gestão de conteúdo próprio, compartilhamento com alunos específicos, biblioteca de exercícios customizados"
+        }
+      ]
     }
   ]
 }

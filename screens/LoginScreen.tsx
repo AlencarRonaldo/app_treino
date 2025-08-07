@@ -237,6 +237,16 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
             </Text>
           </TouchableOpacity>
           
+          {/* Link para esqueci senha */}
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('ForgotPassword' as any)}
+            style={styles.forgotPasswordContainer}
+          >
+            <Text style={styles.forgotPasswordText}>
+              Esqueci minha senha
+            </Text>
+          </TouchableOpacity>
+
           {/* Link para registro */}
           <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
             <Text style={styles.registerLink}>
@@ -461,6 +471,15 @@ const styles = StyleSheet.create({
   registerLinkBold: {
     color: FigmaTheme.colors.textPrimary,
     fontWeight: '600',
+  },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    marginVertical: 12,
+  },
+  forgotPasswordText: {
+    color: FigmaTheme.colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
   userTypeSection: {
     marginTop: 24,

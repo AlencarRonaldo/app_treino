@@ -19,6 +19,22 @@ model User {
   profilePicture    String?
   userType          UserType @default(STUDENT)
   
+  // Authentication fields
+  emailVerified       Boolean  @default(false)
+  isEmailVerified     Boolean  @default(false)
+  emailVerifyToken    String?
+  resetPasswordToken  String?
+  resetPasswordExpires DateTime?
+  googleId            String?  @unique
+  
+  // User preferences
+  preferredLanguage   String   @default("pt-BR")
+  timezone           String   @default("America/Sao_Paulo")
+  
+  // JSON fields stored as strings for SQLite
+  goals              String?  // JSON string array
+  notifications      String?  // JSON object
+  
   // Dados físicos
   height            Int?     // altura em cm
   weight            Float?   // peso em kg
@@ -34,7 +50,7 @@ model User {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   lastLogin         DateTime?
-  emailVerified     Boolean  @default(false)
+  lastLoginAt       DateTime?
   
   // Relacionamentos
   workouts          Workout[]

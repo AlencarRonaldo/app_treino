@@ -61,17 +61,17 @@ export class AuthService {
           password: hashedPassword,
           name: data.name,
           userType: data.userType,
-          dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+          birthDate: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
           gender: data.gender,
           height: data.height,
           weight: data.weight,
           emailVerifyToken,
-          goals: [],
-          notifications: {
+          goals: JSON.stringify([]),
+          notifications: JSON.stringify({
             workout: true,
             progress: true,
             social: true
-          }
+          })
         }
       });
 
@@ -179,21 +179,20 @@ export class AuthService {
 
       if (user) {
         // Usuário existe - atualizar dados do Google se necessário
-        if (!user.googleId) {
+        if (!user.profilePicture) {
           user = await this.prisma.user.update({
             where: { id: user.id },
             data: {
-              googleId,
               profilePicture: picture,
-              isEmailVerified: true,
-              lastLoginAt: new Date()
+              emailVerified: true,
+              lastLogin: new Date()
             }
           });
         } else {
           // Atualizar último login
           user = await this.prisma.user.update({
             where: { id: user.id },
-            data: { lastLoginAt: new Date() }
+            data: { lastLogin: new Date() }
           });
         }
       } else {
@@ -204,14 +203,15 @@ export class AuthService {
             name: name || 'Usuário Google',
             profilePicture: picture,
             userType: data.userType,
-            googleId,
+            emailVerified: true,
             isEmailVerified: true,
-            goals: [],
-            notifications: {
+            googleId,
+            goals: JSON.stringify([]),
+            notifications: JSON.stringify({
               workout: true,
               progress: true,
               social: true
-            }
+            })
           }
         });
       }
@@ -470,7 +470,7 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
-          personalTrainer: {
+          trainer: {
             select: {
               id: true,
               name: true,
@@ -547,13 +547,17 @@ export class AuthService {
       name: user.name,
       profilePicture: user.profilePicture,
       userType: user.userType,
-      isEmailVerified: user.isEmailVerified,
-      preferredLanguage: user.preferredLanguage,
-      timezone: user.timezone,
-      notifications: user.notifications as any,
-      personalTrainerId: user.personalTrainerId,
+      isEmailVerified: user.isEmailVerified || user.emailVerified,
+      preferredLanguage: user.preferredLanguage || 'pt-BR',
+      timezone: user.timezone || 'America/Sao_Paulo',
+      notifications: user.notifications ? JSON.parse(user.notifications) : {
+        workout: true,
+        progress: true,
+        social: true
+      },
+      personalTrainerId: user.trainerId,
       createdAt: user.createdAt?.toISOString(),
-      lastLoginAt: user.lastLoginAt?.toISOString()
+      lastLoginAt: user.lastLoginAt?.toISOString() || user.lastLogin?.toISOString()
     };
   }
 }

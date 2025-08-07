@@ -1,0 +1,42 @@
+# COMANDOS MANUAIS PARA TESTAR O MOBILE APP
+
+## 1. Abrir Command Prompt
+- Pressione Win + R
+- Digite: cmd
+- Pressione Enter
+
+## 2. Executar comandos um por vez:
+
+# Verificar Node.js
+node --version
+
+# Verificar npm
+npm --version
+
+# Navegar para pasta mobile
+cd D:\treinosapp\treinosapp-mobile
+
+# Listar arquivos
+dir
+
+# Instalar dependências (se necessário)
+npm install
+
+# Iniciar Expo
+npx expo start
+
+## 3. Se der erro no npm install:
+npm cache clean --force
+npm install
+
+## 4. Se der erro no expo:
+npm install -g @expo/cli
+npx expo start
+
+## 5. URLs importantes:
+- Web: http://localhost:8081
+- Expo DevTools: http://localhost:19002
+
+## 6. Para testar no celular:
+- Instale o app "Expo Go" na Play Store/App Store
+- Escaneie o QR Code que aparece no terminal

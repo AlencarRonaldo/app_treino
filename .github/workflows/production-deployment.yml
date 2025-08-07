@@ -1,0 +1,384 @@
+# TREINOSAPP - PRODUCTION DEPLOYMENT PIPELINE
+# Automated CI/CD pipeline for production deployment with comprehensive testing
+# 
+# Features:
+# - Multi-stage deployment (build, test, deploy, validate)
+# - Security scanning and vulnerability assessment
+# - Performance testing and validation
+# - Automated rollback on failures
+# - Comprehensive health checks
+
+name: 🚀 Production Deployment
+
+on:
+  push:
+    branches: [main, production]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+      force_deploy:
+        description: 'Force deployment (skip some checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18.x'
+  EXPO_CLI_VERSION: 'latest'
+  SUPABASE_CLI_VERSION: 'latest'
+
+jobs:
+  # ===================================================================
+  # SECURITY & DEPENDENCY SCANNING
+  # ===================================================================
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🔍 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: 📊 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: 🔐 Security audit (npm)
+        run: npm audit --audit-level moderate
+        continue-on-error: true
+
+      - name: 🔍 CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          languages: javascript, typescript
+
+  # ===================================================================
+  # BUILD & TEST PIPELINE
+  # ===================================================================
+  build-and-test:
+    name: 🏗️ Build & Test
+    runs-on: ubuntu-latest
+    needs: [security-scan]
+    strategy:
+      matrix:
+        test-type: [unit, integration, e2e]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+          npm install -g supabase@${{ env.SUPABASE_CLI_VERSION }}
+      
+      - name: 🔧 Setup environment
+        run: |
+          cp .env.example .env.test
+          echo "EXPO_PUBLIC_ENVIRONMENT=test" >> .env.test
+          echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }}" >> .env.test
+          echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TEST_SUPABASE_ANON_KEY }}" >> .env.test
+      
+      - name: 🧪 Run tests (${{ matrix.test-type }})
+        run: |
+          case "${{ matrix.test-type }}" in
+            "unit")
+              npm run test:unit -- --coverage --watchAll=false
+              ;;
+            "integration") 
+              npm run test:integration -- --watchAll=false
+              ;;
+            "e2e")
+              npm run test:e2e -- --headless
+              ;;
+          esac
+        env:
+          TEST_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+          TEST_SUPABASE_KEY: ${{ secrets.TEST_SUPABASE_KEY }}
+      
+      - name: 📊 Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: |
+            coverage/
+            __tests__/results/
+            playwright-report/
+      
+      - name: 🏗️ Build application
+        if: matrix.test-type == 'unit'
+        run: |
+          expo build:web --no-pwa
+          npm run build:android -- --no-build-cache
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+
+  # ===================================================================
+  # PERFORMANCE TESTING
+  # ===================================================================
+  performance-test:
+    name: ⚡ Performance Testing
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: npm ci
+      
+      - name: ⚡ Run performance tests
+        run: |
+          npm run test:performance
+          npm run lighthouse:ci
+        env:
+          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_KEY: ${{ secrets.STAGING_SUPABASE_KEY }}
+      
+      - name: 📊 Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            lighthouse-report/
+            performance-report.json
+
+  # ===================================================================
+  # STAGING DEPLOYMENT
+  # ===================================================================
+  deploy-staging:
+    name: 🚧 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-test, performance-test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+    environment: staging
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          npm install -g supabase@${{ env.SUPABASE_CLI_VERSION }}
+      
+      - name: 🚧 Deploy to Staging
+        run: |
+          node deployment/production-deployment.js staging
+        env:
+          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_SERVICE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_KEY }}
+          STAGING_SUPABASE_PROJECT_ID: ${{ secrets.STAGING_SUPABASE_PROJECT_ID }}
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+      
+      - name: 🧪 Staging smoke tests
+        run: npm run test:smoke -- --environment=staging
+        env:
+          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+
+  # ===================================================================
+  # PRODUCTION DEPLOYMENT
+  # ===================================================================
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: github.ref == 'refs/heads/production' || startsWith(github.ref, 'refs/tags/v')
+    environment: 
+      name: production
+      url: https://app.treinosapp.com
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          npm install -g supabase@${{ env.SUPABASE_CLI_VERSION }}
+      
+      - name: 🔍 Pre-deployment validation
+        run: |
+          # Validate environment variables
+          node -e "
+            const required = ['SUPABASE_URL', 'SUPABASE_SERVICE_KEY', 'SUPABASE_PROJECT_ID'];
+            const missing = required.filter(key => !process.env[key]);
+            if (missing.length > 0) {
+              console.error('Missing environment variables:', missing);
+              process.exit(1);
+            }
+          "
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+      
+      - name: 📍 Create deployment rollback point
+        run: |
+          echo "DEPLOYMENT_ID=prod_$(date +%Y%m%d_%H%M%S)" >> $GITHUB_ENV
+          echo "ROLLBACK_POINT=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+      
+      - name: 🚀 Deploy to Production
+        id: production-deploy
+        run: |
+          echo "Starting production deployment..."
+          node deployment/production-deployment.js production
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      
+      - name: 🏥 Production health checks
+        run: |
+          echo "Running comprehensive health checks..."
+          npm run healthcheck:production
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      
+      - name: 📊 Post-deployment validation
+        run: |
+          echo "Validating production deployment..."
+          npm run validate:production
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: 🔥 Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed, initiating rollback..."
+          node deployment/rollback.js ${{ env.DEPLOYMENT_ID }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      
+      - name: 📱 Deploy mobile app
+        if: success()
+        run: |
+          echo "Deploying mobile application..."
+          expo publish --non-interactive --max-workers=1
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+  # ===================================================================
+  # POST-DEPLOYMENT MONITORING
+  # ===================================================================
+  post-deployment:
+    name: 📊 Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: success()
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: 📦 Install monitoring tools
+        run: |
+          npm install -g artillery lighthouse
+      
+      - name: 📊 Performance monitoring
+        run: |
+          # Run load tests
+          artillery run deployment/load-test.yml --output performance-results.json
+          
+          # Run Lighthouse audit
+          lighthouse https://app.treinosapp.com --output=json --output-path=lighthouse-prod.json
+      
+      - name: 🔔 Send deployment notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚀 Production deployment completed successfully!
+            
+            📅 Deployment ID: ${{ env.DEPLOYMENT_ID }}
+            🌍 Environment: Production
+            ⏱️ Duration: ${{ steps.production-deploy.outputs.duration }}s
+            🔗 URL: https://app.treinosapp.com
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ===================================================================
+  # FAILURE NOTIFICATIONS
+  # ===================================================================
+  notify-failure:
+    name: 🚨 Deployment Failure Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: failure()
+    
+    steps:
+      - name: 🚨 Send failure notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            ❌ Production deployment failed!
+            
+            🔗 Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            📝 Commit: ${{ github.event.head_commit.message }}
+            👤 Author: ${{ github.event.head_commit.author.name }}
+            
+            Please check the logs and initiate rollback if necessary.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

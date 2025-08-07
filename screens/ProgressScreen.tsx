@@ -1,17 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { Card, Text, SegmentedButtons, useTheme, Surface, ProgressBar } from 'react-native-paper';
+import { Card, Text, SegmentedButtons, useTheme, Surface, ProgressBar, FAB, Button } from 'react-native-paper';
 import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DesignTokens } from '../constants/designTokens';
+import { PerformanceCalculator } from '../services/PerformanceCalculator';
+import AnalyticsChart from '../components/AnalyticsChart';
+import KPIWidget from '../components/KPIWidget';
+import ProgressRing from '../components/ProgressRing';
+import ComparisonChart from '../components/ComparisonChart';
 
 const { width } = Dimensions.get('window');
 
-export default function ProgressScreen() {
+export default function ProgressScreen({ navigation }: { navigation?: any }) {
   const theme = useTheme();
   const [timeRange, setTimeRange] = useState('week');
   const [selectedMetric, setSelectedMetric] = useState('weight');
+  const [performanceData, setPerformanceData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadPerformanceData();
+  }, [timeRange]);
+
+  const loadPerformanceData = async () => {
+    setLoading(true);
+    try {
+      const data = await PerformanceCalculator.generateMockProgressData();
+      
+      // Calculate additional metrics
+      const injuryRisk = PerformanceCalculator.calculateInjuryRisk(
+        data.workoutSessions,
+        data.bodyMetrics
+      );
+
+      const strengthImprovement = PerformanceCalculator.calculateStrengthImprovement([
+        { name: 'Supino Reto', records: data.workoutSessions.map(s => ({ date: s.date, sets: s.exercises[0].sets })) },
+        { name: 'Agachamento', records: data.workoutSessions.map(s => ({ date: s.date, sets: s.exercises[1].sets })) }
+      ]);
+
+      setPerformanceData({
+        ...data,
+        injuryRisk,
+        strengthImprovement
+      });
+    } catch (error) {
+      console.error('Error loading performance data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Dados de exemplo mais ricos
   const weightData = {
@@ -184,31 +223,212 @@ export default function ProgressScreen() {
     </Card>
   );
 
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text variant="headlineSmall" style={styles.headerTitle}>
-          Seu Progresso
-        </Text>
-        <Text variant="bodyMedium" style={styles.headerSubtitle}>
-          Acompanhe sua evolução
-        </Text>
-      </View>
+  const renderAdvancedKPIs = () => {
+    if (!performanceData) return null;
 
-      {/* Seletor de Período */}
-      <View style={styles.segmentedContainer}>
-        <SegmentedButtons
-          value={timeRange}
-          onValueChange={setTimeRange}
-          buttons={[
-            { value: 'week', label: 'Semana' },
-            { value: 'month', label: 'Mês' },
-            { value: 'year', label: 'Ano' },
-          ]}
-          style={styles.segmentedButtons}
-        />
+    const latestBodyMetric = performanceData.bodyMetrics[performanceData.bodyMetrics.length - 1];
+    const previousBodyMetric = performanceData.bodyMetrics[performanceData.bodyMetrics.length - 7] || latestBodyMetric;
+    const weightChange = latestBodyMetric.weight - previousBodyMetric.weight;
+
+    return (
+      <View style={styles.advancedKPIs}>
+        <View style={styles.kpiRow}>
+          <KPIWidget
+            title="Peso Atual"
+            value={`${latestBodyMetric.weight}kg`}
+            trend={{
+              value: Math.abs(weightChange),
+              direction: weightChange > 0 ? 'up' : weightChange < 0 ? 'down' : 'stable',
+              label: 'vs semana passada'
+            }}
+            icon="scale"
+            color={DesignTokens.colors.primary}
+            size="medium"
+          />
+          
+          <KPIWidget
+            title="Risco de Lesão"
+            value={`${performanceData.injuryRisk.riskScore}%`}
+            subtitle={performanceData.injuryRisk.riskLevel === 'low' ? 'Baixo' : 'Moderado'}
+            icon="shield-checkmark"
+            color={performanceData.injuryRisk.riskLevel === 'low' ? DesignTokens.colors.success : DesignTokens.colors.warning}
+            size="medium"
+          />
+        </View>
       </View>
+    );
+  };
+
+  const renderPersonalRecords = () => {
+    if (!performanceData?.personalRecords) return null;
+
+    return (
+      <Card style={styles.recordsCard}>
+        <View style={styles.recordsHeader}>
+          <Ionicons name="trophy" size={24} color={DesignTokens.colors.warning} />
+          <View style={styles.recordsHeaderText}>
+            <Text variant="titleMedium" style={styles.recordsTitle}>
+              Recordes Pessoais
+            </Text>
+            <Text variant="bodySmall" style={styles.recordsSubtitle}>
+              Suas melhores marcas
+            </Text>
+          </View>
+          <Button onPress={() => navigation?.navigate('PersonalGoals')}>
+            Ver metas
+          </Button>
+        </View>
+        
+        <View style={styles.recordsContent}>
+          {performanceData.personalRecords.map((record: any, index: number) => (
+            <View key={index} style={styles.recordItem}>
+              <View style={[styles.recordIndicator, { backgroundColor: DesignTokens.colors.primary }]} />
+              <View style={styles.recordInfo}>
+                <Text variant="bodyMedium" style={styles.recordExercise}>
+                  {record.exercise}
+                </Text>
+                <Text variant="bodySmall" style={styles.recordDate}>
+                  {new Date(record.date).toLocaleDateString('pt-BR')}
+                </Text>
+              </View>
+              <Text variant="titleMedium" style={[styles.recordValue, { color: DesignTokens.colors.primary }]}>
+                {record.weight}kg
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Card>
+    );
+  };
+
+  const renderMotivationalInsights = () => {
+    if (!performanceData) return null;
+
+    const totalWorkouts = performanceData.workoutSessions.length;
+    const averageRating = performanceData.workoutSessions
+      .filter((s: any) => s.rating)
+      .reduce((sum: number, s: any) => sum + s.rating, 0) / 
+      performanceData.workoutSessions.filter((s: any) => s.rating).length;
+
+    const insights = [
+      {
+        icon: 'fitness' as keyof typeof Ionicons.glyphMap,
+        title: 'Treinos Realizados',
+        value: totalWorkouts,
+        subtitle: 'Nos últimos 90 dias',
+        color: DesignTokens.colors.primary
+      },
+      {
+        icon: 'happy' as keyof typeof Ionicons.glyphMap,
+        title: 'Satisfação Média',
+        value: `${averageRating.toFixed(1)}/5`,
+        subtitle: 'Avaliação dos treinos',
+        color: DesignTokens.colors.success
+      },
+      {
+        icon: 'trending-up' as keyof typeof Ionicons.glyphMap,
+        title: 'Melhoria na Força',
+        value: `+${performanceData.strengthImprovement[0]?.improvement.toFixed(1) || 0}%`,
+        subtitle: 'Supino reto',
+        color: DesignTokens.colors.warning
+      }
+    ];
+
+    return (
+      <Card style={styles.insightsCard}>
+        <View style={styles.insightsHeader}>
+          <LinearGradient
+            colors={[DesignTokens.colors.success, `${DesignTokens.colors.success}CC`]}
+            style={styles.insightsGradient}
+          >
+            <Ionicons name="bulb" size={28} color="white" />
+            <Text variant="titleMedium" style={styles.insightsTitle}>
+              Insights Motivacionais
+            </Text>
+          </LinearGradient>
+        </View>
+
+        <View style={styles.insightsGrid}>
+          {insights.map((insight, index) => (
+            <View key={index} style={styles.insightItem}>
+              <View style={[styles.insightIcon, { backgroundColor: insight.color }]}>
+                <Ionicons name={insight.icon} size={24} color="white" />
+              </View>
+              <Text variant="headlineSmall" style={styles.insightValue}>
+                {insight.value}
+              </Text>
+              <Text variant="bodySmall" style={styles.insightTitle}>
+                {insight.title}
+              </Text>
+              <Text variant="bodySmall" style={styles.insightSubtitle}>
+                {insight.subtitle}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Card>
+    );
+  };
+
+  const renderProgressComparison = () => {
+    if (!performanceData?.bodyMetrics) return null;
+
+    const recent = performanceData.bodyMetrics.slice(-7); // Last week
+    const previous = performanceData.bodyMetrics.slice(-14, -7); // Previous week
+
+    if (recent.length === 0 || previous.length === 0) return null;
+
+    const recentAvgWeight = recent.reduce((sum: number, m: any) => sum + m.weight, 0) / recent.length;
+    const previousAvgWeight = previous.reduce((sum: number, m: any) => sum + m.weight, 0) / previous.length;
+
+    const comparisonData = [
+      {
+        label: 'Peso Médio',
+        current: recentAvgWeight,
+        previous: previousAvgWeight,
+        unit: 'kg'
+      }
+    ];
+
+    return (
+      <ComparisonChart
+        title="Comparação Semanal"
+        data={comparisonData}
+        comparisonType="vs-previous"
+        showPercentageImprovement={true}
+      />
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text variant="headlineSmall" style={styles.headerTitle}>
+            Seu Progresso
+          </Text>
+          <Text variant="bodyMedium" style={styles.headerSubtitle}>
+            Acompanhe sua evolução fitness
+          </Text>
+        </View>
+
+        {/* Seletor de Período */}
+        <View style={styles.segmentedContainer}>
+          <SegmentedButtons
+            value={timeRange}
+            onValueChange={setTimeRange}
+            buttons={[
+              { value: 'week', label: 'Semana' },
+              { value: 'month', label: 'Mês' },
+              { value: 'year', label: 'Ano' },
+            ]}
+            style={styles.segmentedButtons}
+          />
+        </View>
+
+        {/* Advanced KPIs */}
+        {renderAdvancedKPIs()}
 
       {/* Metas da Semana */}
       {renderWeeklyGoals()}
@@ -368,11 +588,20 @@ export default function ProgressScreen() {
         </Card>
       )}
 
-      {/* Conquistas */}
-      {renderAchievements()}
+        {/* Progress Comparison */}
+        {renderProgressComparison()}
 
-      {/* Recordes Pessoais Modernizado */}
-      <Card style={styles.recordsCard}>
+        {/* Motivational Insights */}
+        {renderMotivationalInsights()}
+
+        {/* Conquistas */}
+        {renderAchievements()}
+
+        {/* Personal Records Enhanced */}
+        {renderPersonalRecords()}
+
+        {/* Original Records Card - Keeping for backward compatibility */}
+        <Card style={styles.recordsCard}>
         <View style={styles.recordsHeader}>
           <Ionicons name="trophy" size={24} color={DesignTokens.colors.warning} />
           <View style={styles.recordsHeaderText}>
@@ -412,8 +641,35 @@ export default function ProgressScreen() {
         </View>
       </Card>
 
-      <View style={styles.bottomSpacing} />
-    </ScrollView>
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+
+      {/* Quick Action FABs */}
+      <FAB.Group
+        open={false}
+        visible
+        icon="plus"
+        actions={[
+          {
+            icon: 'flag',
+            label: 'Nova Meta',
+            onPress: () => navigation?.navigate('PersonalGoals'),
+          },
+          {
+            icon: 'trophy',
+            label: 'Conquistas',
+            onPress: () => navigation?.navigate('Achievements'),
+          },
+          {
+            icon: 'camera',
+            label: 'Foto Progresso',
+            onPress: () => {},
+          },
+        ]}
+        onStateChange={() => {}}
+        style={styles.fabGroup}
+      />
+    </View>
   );
 }
 
@@ -421,6 +677,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: DesignTokens.colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
     padding: DesignTokens.spacing.lg,
@@ -689,5 +948,74 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 100,
+  },
+  // New styles for enhanced features
+  advancedKPIs: {
+    marginBottom: DesignTokens.spacing.lg,
+  },
+  kpiRow: {
+    flexDirection: 'row',
+    paddingHorizontal: DesignTokens.spacing.sm,
+    gap: DesignTokens.spacing.sm,
+  },
+  insightsCard: {
+    marginHorizontal: DesignTokens.spacing.md,
+    marginBottom: DesignTokens.spacing.lg,
+    backgroundColor: DesignTokens.colors.surface,
+    ...DesignTokens.shadows.md,
+  },
+  insightsHeader: {
+    overflow: 'hidden',
+    borderTopLeftRadius: DesignTokens.borderRadius.lg,
+    borderTopRightRadius: DesignTokens.borderRadius.lg,
+  },
+  insightsGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: DesignTokens.spacing.lg,
+  },
+  insightsTitle: {
+    color: 'white',
+    fontWeight: DesignTokens.typography.fontWeight.bold as any,
+    marginLeft: DesignTokens.spacing.md,
+  },
+  insightsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: DesignTokens.spacing.lg,
+  },
+  insightItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  insightIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: DesignTokens.spacing.sm,
+  },
+  insightValue: {
+    fontWeight: DesignTokens.typography.fontWeight.bold as any,
+    color: DesignTokens.colors.textPrimary,
+    marginBottom: 4,
+  },
+  insightTitle: {
+    fontWeight: DesignTokens.typography.fontWeight.medium as any,
+    color: DesignTokens.colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  insightSubtitle: {
+    color: DesignTokens.colors.textSecondary,
+    textAlign: 'center',
+  },
+  recordDate: {
+    color: DesignTokens.colors.textSecondary,
+    marginTop: 2,
+  },
+  fabGroup: {
+    paddingBottom: 16,
   },
 });

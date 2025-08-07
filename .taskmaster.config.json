@@ -1,0 +1,93 @@
+{
+  "project": {
+    "name": "TreinosApp",
+    "type": "react-native-expo",
+    "language": "typescript",
+    "description": "Brazilian fitness tracking application with comprehensive workout management"
+  },
+  "ai_config": {
+    "default_model": "claude-3-opus",
+    "fallback_models": ["gpt-4", "gemini-pro"],
+    "temperature": 0.7,
+    "max_tokens": 4000
+  },
+  "features": {
+    "auto_documentation": true,
+    "code_generation": true,
+    "task_tracking": true,
+    "research_mode": true,
+    "auto_commit": false,
+    "testing": true
+  },
+  "integrations": {
+    "github": true,
+    "jira": false,
+    "slack": false,
+    "vscode": true,
+    "cursor": true
+  },
+  "project_context": {
+    "framework": "Expo SDK 51",
+    "ui_library": "React Native Paper",
+    "state_management": "Context API",
+    "storage": "AsyncStorage",
+    "backend": {
+      "framework": "Node.js + Express",
+      "database": "PostgreSQL",
+      "auth": "JWT"
+    },
+    "navigation": "React Navigation v6",
+    "charts": "react-native-chart-kit",
+    "forms": "react-hook-form + yup"
+  },
+  "directories": {
+    "mobile": "./treinosapp-mobile",
+    "backend": "./treinosapp-backend",
+    "docs": "./docs",
+    "tests": "./tests"
+  },
+  "task_priorities": {
+    "high": [
+      "Authentication flow",
+      "Workout timer implementation",
+      "Data persistence with AsyncStorage",
+      "Progress tracking system"
+    ],
+    "medium": [
+      "Student management for trainers",
+      "Social features",
+      "Export functionality",
+      "Advanced statistics"
+    ],
+    "low": [
+      "Themes customization",
+      "Multiple language support",
+      "Advanced animations"
+    ]
+  },
+  "development_workflow": {
+    "branch_naming": "feature/{task-id}-{description}",
+    "commit_format": "conventional",
+    "pull_request_template": true,
+    "code_review_required": true,
+    "testing_required": true
+  },
+  "quality_standards": {
+    "code_coverage": 80,
+    "lint_on_commit": true,
+    "type_checking": true,
+    "accessibility": true,
+    "performance_budget": {
+      "bundle_size": "50MB",
+      "initial_load": "3s",
+      "api_response": "200ms"
+    }
+  },
+  "custom_commands": {
+    "workout-timer": "Generate tasks for implementing workout timer with rest periods",
+    "progress-tracking": "Create comprehensive progress tracking system",
+    "student-management": "Plan student management feature for personal trainers",
+    "fix-login": "Debug and fix login screen loading issues",
+    "optimize-bundle": "Analyze and optimize app bundle size"
+  }
+}

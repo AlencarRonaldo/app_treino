@@ -1,0 +1,139 @@
+# Pre-commit hooks configuration for TreinosApp
+# Install with: pip install pre-commit && pre-commit install
+
+repos:
+  # Code formatting and linting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: detect-private-key
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # JavaScript/TypeScript linting
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        entry: npx eslint
+        language: node
+        files: \.(js|jsx|ts|tsx)$
+        args: [--fix]
+        additional_dependencies:
+          - eslint
+          - '@typescript-eslint/parser'
+          - '@typescript-eslint/eslint-plugin'
+
+      - id: prettier
+        name: Prettier
+        entry: npx prettier
+        language: node
+        files: \.(js|jsx|ts|tsx|json|css|md)$
+        args: [--write]
+        additional_dependencies:
+          - prettier
+
+      - id: typescript-check
+        name: TypeScript Check
+        entry: npx tsc
+        language: node
+        files: \.(ts|tsx)$
+        args: [--noEmit]
+        pass_filenames: false
+
+  # Security checks
+  - repo: local
+    hooks:
+      - id: npm-audit
+        name: NPM Security Audit
+        entry: npm audit
+        language: node
+        args: [--audit-level, moderate]
+        pass_filenames: false
+        stages: [commit]
+
+      - id: secret-scan
+        name: Secret Scanner
+        entry: bash -c 'if git diff --cached --name-only | xargs grep -l "SUPABASE.*=" 2>/dev/null; then echo "Potential secrets detected!"; exit 1; fi'
+        language: system
+        stages: [commit]
+
+  # Test requirements
+  - repo: local
+    hooks:
+      - id: unit-tests
+        name: Unit Tests
+        entry: npm run test:unit
+        language: node
+        args: [--passWithNoTests, --silent]
+        pass_filenames: false
+        stages: [push]
+
+      - id: test-coverage
+        name: Test Coverage Check
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            npm run test:coverage -- --silent --passWithNoTests
+            if [ -f coverage/coverage-summary.json ]; then
+              node -e "
+                const coverage = require('./coverage/coverage-summary.json');
+                const threshold = 80;
+                const lines = coverage.total.lines.pct;
+                if (lines < threshold) {
+                  console.error('Coverage (' + lines + '%) below threshold (' + threshold + '%)');
+                  process.exit(1);
+                }
+                console.log('Coverage check passed: ' + lines + '%');
+              "
+            fi
+        pass_filenames: false
+        stages: [push]
+
+  # File quality checks
+  - repo: local
+    hooks:
+      - id: file-size-check
+        name: Large File Check
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            for file in $(git diff --cached --name-only); do
+              if [ -f "$file" ] && [ $(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0) -gt 500000 ]; then
+                echo "File $file is larger than 500KB. Consider optimizing or using Git LFS."
+                exit 1
+              fi
+            done
+        stages: [commit]
+
+      - id: migration-validation
+        name: Migration Scripts Validation
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            if git diff --cached --name-only | grep -q "migration/"; then
+              echo "Migration files changed, running validation..."
+              npm run migrate:validate
+            fi
+        pass_filenames: false
+        stages: [commit]
+
+# Global configuration
+default_stages: [commit]
+fail_fast: false
+minimum_pre_commit_version: 2.20.0

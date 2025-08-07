@@ -17,6 +17,9 @@
         "backgroundColor": "#FF6B35"
       }
     },
-    "web": {}
+    "web": {},
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

@@ -9,27 +9,21 @@ import { config } from '../config/environment';
 import { AuthenticationError, AuthorizationError } from './errorHandler';
 import { logger } from '../utils/logger';
 
+import { JWTPayload } from '../types/auth.types';
+
 // Extend Request interface to include user
 declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string;
+        userId: string;
         email: string;
-        tipo: 'personal' | 'student';
+        userType: 'PERSONAL' | 'STUDENT';
         iat?: number;
         exp?: number;
       };
     }
   }
-}
-
-interface JWTPayload {
-  id: string;
-  email: string;
-  tipo: 'personal' | 'student';
-  iat?: number;
-  exp?: number;
 }
 
 export const authMiddleware = async (
@@ -60,7 +54,7 @@ export const authMiddleware = async (
       const decoded = jwt.verify(token, config.JWT_SECRET) as JWTPayload;
 
       // Validate token payload
-      if (!decoded.id || !decoded.email || !decoded.tipo) {
+      if (!decoded.userId || !decoded.email || !decoded.userType) {
         throw new AuthenticationError('Token de autenticação inválido');
       }
 
@@ -71,15 +65,15 @@ export const authMiddleware = async (
 
       // Attach user to request
       req.user = {
-        id: decoded.id,
+        userId: decoded.userId,
         email: decoded.email,
-        tipo: decoded.tipo,
+        userType: decoded.userType,
         iat: decoded.iat,
         exp: decoded.exp
       };
 
       // Log successful authentication
-      logger.auth('Token validated', decoded.id, req.ip, req.get('User-Agent'));
+      logger.auth('Token validated', decoded.userId, req.ip, req.get('User-Agent'));
 
       next();
 
@@ -109,16 +103,16 @@ export const authMiddleware = async (
 };
 
 // Middleware para verificar tipo de usuário
-export const requireUserType = (allowedTypes: ('personal' | 'student')[]) => {
+export const requireUserType = (allowedTypes: ('PERSONAL' | 'STUDENT')[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       return next(new AuthenticationError());
     }
 
-    if (!allowedTypes.includes(req.user.tipo)) {
+    if (!allowedTypes.includes(req.user.userType)) {
       logger.security('Authorization failed - insufficient privileges', {
-        userId: req.user.id,
-        userType: req.user.tipo,
+        userId: req.user.userId,
+        userType: req.user.userType,
         requiredTypes: allowedTypes,
         endpoint: req.path,
         ip: req.ip
@@ -134,10 +128,10 @@ export const requireUserType = (allowedTypes: ('personal' | 'student')[]) => {
 };
 
 // Middleware para verificar se é Personal Trainer
-export const requirePersonalTrainer = requireUserType(['personal']);
+export const requirePersonalTrainer = requireUserType(['PERSONAL']);
 
 // Middleware para verificar se é Student
-export const requireStudent = requireUserType(['student']);
+export const requireStudent = requireUserType(['STUDENT']);
 
 // Middleware opcional de autenticação (não falha se não houver token)
 export const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
@@ -156,11 +150,11 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction): v
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET) as JWTPayload;
     
-    if (decoded.id && decoded.email && decoded.tipo) {
+    if (decoded.userId && decoded.email && decoded.userType) {
       req.user = {
-        id: decoded.id,
+        userId: decoded.userId,
         email: decoded.email,
-        tipo: decoded.tipo,
+        userType: decoded.userType,
         iat: decoded.iat,
         exp: decoded.exp
       };
@@ -175,17 +169,17 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction): v
 
 // Utility function to extract user ID from request
 export const getUserIdFromRequest = (req: Request): string => {
-  if (!req.user?.id) {
+  if (!req.user?.userId) {
     throw new AuthenticationError('Usuário não autenticado');
   }
-  return req.user.id;
+  return req.user.userId;
 };
 
 // Utility function to check if user owns resource
 export const checkResourceOwnership = (
   resourceUserId: string,
   requestUserId: string,
-  userType: 'personal' | 'student'
+  userType: 'PERSONAL' | 'STUDENT'
 ): boolean => {
   // User always owns their own resources
   if (resourceUserId === requestUserId) {

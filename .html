@@ -1,0 +1,988 @@
+# Sistema Multi-Claude para Revisão de Código
+
+## 🔄 ARQUITETURA DE REVISÃO AUTOMATIZADA
+
+### **Método 1: Claude API + Orchestrator**
+
+#### **1.1 - Sistema Orquestrador Node.js**
+```javascript
+// orchestrator.js
+const axios = require('axios');
+
+class MultiClaudeReviewer {
+  constructor() {
+    this.claudeInstances = [
+      {
+        name: 'Claude_Creator',
+        role: 'Desenvolvedor Principal',
+        apiKey: 'sk-ant-api03-YOUR_KEY_1',
+        prompt: 'Você é um desenvolvedor React Native expert. Crie código funcional e otimizado.'
+      },
+      {
+        name: 'Claude_Reviewer', 
+        role: 'Code Reviewer',
+        apiKey: 'sk-ant-api03-YOUR_KEY_2', // Conta diferente
+        prompt: 'Você é um senior code reviewer. Analise código para bugs, performance e best practices.'
+      },
+      {
+        name: 'Claude_Tester',
+        role: 'QA Engineer', 
+        apiKey: 'sk-ant-api03-YOUR_KEY_3',
+        prompt: 'Você é um QA engineer. Crie testes unitários e identifique edge cases.'
+      }
+    ];
+  }
+
+  async createCode(requirements) {
+    console.log('🔨 Claude Creator: Gerando código...');
+    
+    const creator = this.claudeInstances[0];
+    const code = await this.callClaude(creator, `
+      TAREFA: Criar código React Native para: ${requirements}
+      
+      REGRAS:
+      - Código completo e funcional
+      - Seguir best practices
+      - Incluir tratamento de erro
+      - TypeScript quando necessário
+      - Comentários explicativos
+      
+      ENTREGUE: Código pronto para produção
+    `);
+
+    return code;
+  }
+
+  async reviewCode(code, originalRequirements) {
+    console.log('🔍 Claude Reviewer: Analisando código...');
+    
+    const reviewer = this.claudeInstances[1];
+    const review = await this.callClaude(reviewer, `
+      CÓDIGO PARA REVISÃO:
+      \`\`\`
+      ${code}
+      \`\`\`
+      
+      REQUISITOS ORIGINAIS: ${originalRequirements}
+      
+      ANALISE:
+      1. ✅ Funcionalidade - Atende os requisitos?
+      2. 🐛 Bugs - Problemas evidentes?
+      3. ⚡ Performance - Otimizações necessárias?
+      4. 🏗️ Arquitetura - Estrutura bem organizada?
+      5. 🔒 Segurança - Vulnerabilidades?
+      6. 📱 Mobile - Específicos React Native?
+      
+      FORMATO DE RESPOSTA:
+      ## 🎯 APROVAÇÃO: [APROVADO/REVISÃO NECESSÁRIA/REJEITADO]
+      
+      ## 📋 PROBLEMAS ENCONTRADOS:
+      - [lista de problemas]
+      
+      ## 💡 SUGESTÕES DE MELHORIA:
+      - [melhorias específicas]
+      
+      ## 🔧 CÓDIGO CORRIGIDO:
+      [código melhorado se necessário]
+    `);
+
+    return review;
+  }
+
+  async createTests(code) {
+    console.log('🧪 Claude Tester: Criando testes...');
+    
+    const tester = this.claudeInstances[2];
+    const tests = await this.callClaude(tester, `
+      CÓDIGO PARA TESTE:
+      \`\`\`
+      ${code}
+      \`\`\`
+      
+      CRIE:
+      1. Testes unitários (Jest)
+      2. Testes de integração
+      3. Casos de edge
+      4. Mocks necessários
+      5. Setup de teste
+      
+      FRAMEWORK: Jest + React Native Testing Library
+    `);
+
+    return tests;
+  }
+
+  async fullReviewCycle(requirements) {
+    try {
+      // Passo 1: Criar código
+      const initialCode = await this.createCode(requirements);
+      console.log('✅ Código inicial criado');
+
+      // Passo 2: Revisar código
+      const review = await this.reviewCode(initialCode, requirements);
+      console.log('✅ Revisão concluída');
+
+      // Passo 3: Criar testes
+      const tests = await this.createTests(initialCode);
+      console.log('✅ Testes criados');
+
+      // Passo 4: Iteração se necessário
+      if (review.includes('REVISÃO NECESSÁRIA')) {
+        console.log('🔄 Iniciando ciclo de correção...');
+        return this.iterateCode(initialCode, review, requirements);
+      }
+
+      return {
+        finalCode: initialCode,
+        review: review,
+        tests: tests,
+        status: 'APROVADO'
+      };
+
+    } catch (error) {
+      console.error('❌ Erro no ciclo de revisão:', error);
+      throw error;
+    }
+  }
+
+  async iterateCode(code, reviewFeedback, requirements) {
+    console.log('🔄 Claude Creator: Corrigindo código baseado no feedback...');
+    
+    const creator = this.claudeInstances[0];
+    const improvedCode = await this.callClaude(creator, `
+      CÓDIGO ATUAL:
+      \`\`\`
+      ${code}
+      \`\`\`
+      
+      FEEDBACK DO REVIEWER:
+      ${reviewFeedback}
+      
+      REQUISITOS ORIGINAIS: ${requirements}
+      
+      TAREFA: Corrigir todos os problemas identificados no feedback
+      ENTREGUE: Código melhorado e corrigido
+    `);
+
+    // Revisar novamente
+    const newReview = await this.reviewCode(improvedCode, requirements);
+    
+    return {
+      finalCode: improvedCode,
+      review: newReview,
+      iterations: 1
+    };
+  }
+
+  async callClaude(instance, prompt) {
+    try {
+      const response = await axios.post('https://api.anthropic.com/v1/messages', {
+        model: 'claude-3-sonnet-20240229',
+        max_tokens: 4000,
+        messages: [
+          {
+            role: 'system',
+            content: instance.prompt
+          },
+          {
+            role: 'user', 
+            content: prompt
+          }
+        ]
+      }, {
+        headers: {
+          'x-api-key': instance.apiKey,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01'
+        }
+      });
+
+      return response.data.content[0].text;
+    } catch (error) {
+      console.error(`❌ Erro na chamada ${instance.name}:`, error);
+      throw error;
+    }
+  }
+}
+
+// Uso do sistema
+async function main() {
+  const reviewer = new MultiClaudeReviewer();
+  
+  const requirements = `
+    Criar um componente React Native de login com:
+    - Email e senha
+    - Validação de campos
+    - Loading state
+    - Navegação após sucesso
+    - Tratamento de erro
+    - Design responsivo
+  `;
+
+  const result = await reviewer.fullReviewCycle(requirements);
+  
+  console.log('🎉 RESULTADO FINAL:');
+  console.log('Status:', result.status);
+  console.log('Código:', result.finalCode);
+  console.log('Review:', result.review);
+  console.log('Testes:', result.tests);
+}
+
+main().catch(console.error);
+```
+
+---
+
+### **Método 2: Interface Web Multi-Abas**
+
+#### **2.1 - Dashboard HTML de Controle**
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Claude Code Review</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: #f5f7fa;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 100vh;
+        }
+        
+        .claude-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .claude-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .claude-creator { border-left: 4px solid #4CAF50; }
+        .claude-reviewer { border-left: 4px solid #FF9800; }
+        .claude-tester { border-left: 4px solid #2196F3; }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status.active { background: #e8f5e8; color: #2e7d32; }
+        .status.waiting { background: #fff3e0; color: #ef6c00; }
+        
+        textarea {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            resize: none;
+            font-size: 14px;
+        }
+        
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .workflow {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            width: 250px;
+        }
+        
+        .workflow-step {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .workflow-step.active {
+            background: #e3f2fd;
+            border-left: 3px solid #2196f3;
+        }
+        
+        .workflow-step.completed {
+            background: #e8f5e8;
+            border-left: 3px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Claude Creator -->
+        <div class="claude-panel claude-creator">
+            <div class="claude-header">
+                <h3>🔨 Claude Creator</h3>
+                <span class="status active" id="creator-status">Ativo</span>
+            </div>
+            <textarea id="creator-output" placeholder="Código será gerado aqui..."></textarea>
+            <div class="actions">
+                <button class="btn-primary" onclick="generateCode()">Gerar Código</button>
+                <button class="btn-secondary" onclick="clearCreator()">Limpar</button>
+            </div>
+        </div>
+
+        <!-- Claude Reviewer -->
+        <div class="claude-panel claude-reviewer">
+            <div class="claude-header">
+                <h3>🔍 Claude Reviewer</h3>
+                <span class="status waiting" id="reviewer-status">Aguardando</span>
+            </div>
+            <textarea id="reviewer-output" placeholder="Análise aparecerá aqui..."></textarea>
+            <div class="actions">
+                <button class="btn-primary" onclick="reviewCode()">Revisar Código</button>
+                <button class="btn-secondary" onclick="clearReviewer()">Limpar</button>
+            </div>
+        </div>
+
+        <!-- Claude Tester -->
+        <div class="claude-panel claude-tester">
+            <div class="claude-header">
+                <h3>🧪 Claude Tester</h3>
+                <span class="status waiting" id="tester-status">Aguardando</span>
+            </div>
+            <textarea id="tester-output" placeholder="Testes serão criados aqui..."></textarea>
+            <div class="actions">
+                <button class="btn-primary" onclick="createTests()">Criar Testes</button>
+                <button class="btn-secondary" onclick="clearTester()">Limpar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Monitor -->
+    <div class="workflow">
+        <h4>📋 Workflow</h4>
+        <div class="workflow-step active" id="step-1">
+            <span>1. Gerar Código</span>
+            <span>🔄</span>
+        </div>
+        <div class="workflow-step" id="step-2">
+            <span>2. Revisar Código</span>
+            <span>⏳</span>
+        </div>
+        <div class="workflow-step" id="step-3">
+            <span>3. Criar Testes</span>
+            <span>⏳</span>
+        </div>
+        <div class="workflow-step" id="step-4">
+            <span>4. Validar Final</span>
+            <span>⏳</span>
+        </div>
+        
+        <button class="btn-success" style="width: 100%; margin-top: 15px;" onclick="runFullCycle()">
+            🚀 Executar Ciclo Completo
+        </button>
+    </div>
+
+    <script>
+        // Simulação das funções (substituir por calls reais da API)
+        
+        async function generateCode() {
+            updateStatus('creator-status', 'Gerando...', 'active');
+            
+            const mockCode = `
+import React, { useState } from 'react';
+import { View, TextInput, Button, Alert } from 'react-native';
+
+const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erro', 'Preencha todos os campos');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      // API call here
+      navigation.navigate('Dashboard');
+    } catch (error) {
+      Alert.alert('Erro', 'Login falhou');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={{ padding: 20 }}>
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        placeholder="Senha"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <Button 
+        title={loading ? 'Carregando...' : 'Login'}
+        onPress={handleLogin}
+        disabled={loading}
+      />
+    </View>
+  );
+};
+
+export default LoginScreen;
+            `.trim();
+
+            await simulateDelay(2000);
+            document.getElementById('creator-output').value = mockCode;
+            updateStatus('creator-status', 'Concluído', 'completed');
+            updateWorkflowStep('step-1', 'completed');
+            updateWorkflowStep('step-2', 'active');
+        }
+
+        async function reviewCode() {
+            updateStatus('reviewer-status', 'Analisando...', 'active');
+            
+            const mockReview = `
+## 🎯 APROVAÇÃO: REVISÃO NECESSÁRIA
+
+## 📋 PROBLEMAS ENCONTRADOS:
+- Falta validação de email (formato)
+- Não há loading indicator visual
+- Estilos não estão aplicados
+- Falta tratamento específico de erro de rede
+- KeyboardAvoidingView não implementado
+
+## 💡 SUGESTÕES DE MELHORIA:
+- Adicionar react-native-paper para UI
+- Implementar validação com regex
+- Usar KeyboardAvoidingView para iOS
+- Adicionar ActivityIndicator
+- Melhorar feedback de erro
+
+## 🔧 CÓDIGO CORRIGIDO:
+[Código melhorado seria fornecido aqui]
+
+NOTA: Aplicar correções antes de prosseguir para testes.
+            `.trim();
+
+            await simulateDelay(3000);
+            document.getElementById('reviewer-output').value = mockReview;
+            updateStatus('reviewer-status', 'Concluído', 'completed');
+            updateWorkflowStep('step-2', 'completed');
+            updateWorkflowStep('step-3', 'active');
+        }
+
+        async function createTests() {
+            updateStatus('tester-status', 'Criando testes...', 'active');
+            
+            const mockTests = `
+// __tests__/LoginScreen.test.js
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import LoginScreen from '../LoginScreen';
+
+const mockNavigation = { navigate: jest.fn() };
+
+describe('LoginScreen', () => {
+  beforeEach(() => {
+    mockNavigation.navigate.mockClear();
+  });
+
+  it('renders correctly', () => {
+    const { getByPlaceholderText } = render(
+      <LoginScreen navigation={mockNavigation} />
+    );
+    
+    expect(getByPlaceholderText('Email')).toBeTruthy();
+    expect(getByPlaceholderText('Senha')).toBeTruthy();
+  });
+
+  it('shows error for empty fields', () => {
+    const { getByText } = render(
+      <LoginScreen navigation={mockNavigation} />
+    );
+    
+    fireEvent.press(getByText('Login'));
+    // Test alert behavior
+  });
+
+  it('validates email format', () => {
+    // Test email validation
+  });
+
+  it('handles login success', async () => {
+    // Test successful login flow
+  });
+
+  it('handles login error', async () => {
+    // Test error handling
+  });
+});
+            `.trim();
+
+            await simulateDelay(2500);
+            document.getElementById('tester-output').value = mockTests;
+            updateStatus('tester-status', 'Concluído', 'completed');
+            updateWorkflowStep('step-3', 'completed');
+            updateWorkflowStep('step-4', 'active');
+        }
+
+        async function runFullCycle() {
+            await generateCode();
+            await reviewCode();
+            await createTests();
+            updateWorkflowStep('step-4', 'completed');
+            alert('🎉 Ciclo completo finalizado!');
+        }
+
+        function updateStatus(elementId, text, className) {
+            const element = document.getElementById(elementId);
+            element.textContent = text;
+            element.className = `status ${className}`;
+        }
+
+        function updateWorkflowStep(stepId, status) {
+            const step = document.getElementById(stepId);
+            step.className = `workflow-step ${status}`;
+            
+            const icon = step.querySelector('span:last-child');
+            if (status === 'completed') {
+                icon.textContent = '✅';
+            } else if (status === 'active') {
+                icon.textContent = '🔄';
+            }
+        }
+
+        function simulateDelay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function clearCreator() {
+            document.getElementById('creator-output').value = '';
+            updateStatus('creator-status', 'Ativo', 'active');
+        }
+
+        function clearReviewer() {
+            document.getElementById('reviewer-output').value = '';
+            updateStatus('reviewer-status', 'Aguardando', 'waiting');
+        }
+
+        function clearTester() {
+            document.getElementById('tester-output').value = '';
+            updateStatus('tester-status', 'Aguardando', 'waiting');
+        }
+    </script>
+</body>
+</html>
+```
+
+---
+
+### **Método 3: Claude Web + Automação Browser**
+
+#### **3.1 - Script Puppeteer para Automação**
+```javascript
+// browser-automation.js
+const puppeteer = require('puppeteer');
+
+class ClaudeBrowserAutomator {
+  constructor() {
+    this.browsers = [];
+    this.pages = [];
+  }
+
+  async initializeMultipleClaudes() {
+    console.log('🚀 Inicializando múltiplas instâncias do Claude...');
+    
+    for (let i = 0; i < 3; i++) {
+      const browser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: { width: 1280, height: 720 },
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          `--window-position=${i * 400},0`
+        ]
+      });
+
+      const page = await browser.newPage();
+      await page.goto('https://claude.ai');
+      
+      // Aguardar login manual ou automatizar se possível
+      console.log(`Claude ${i + 1} iniciado. Faça login manualmente.`);
+      
+      this.browsers.push(browser);
+      this.pages.push(page);
+    }
+
+    await this.waitForUserInput('Pressione Enter após fazer login em todas as instâncias...');
+  }
+
+  async createCode(requirements) {
+    const creatorPage = this.pages[0];
+    
+    console.log('🔨 Enviando requisitos para Claude Creator...');
+    
+    await creatorPage.type('[data-testid="chat-input"]', `
+      ROLE: Desenvolvedor React Native Expert
+      
+      TAREFA: Criar código para: ${requirements}
+      
+      REQUISITOS:
+      - Código completo e funcional
+      - Best practices
+      - Tratamento de erro
+      - Comentários explicativos
+      - TypeScript se necessário
+      
+      FORMATO: Entregar código pronto para produção
+    `);
+
+    await creatorPage.click('[data-testid="send-button"]');
+    
+    // Aguardar resposta
+    await this.waitForResponse(creatorPage);
+    
+    const code = await this.extractCodeFromResponse(creatorPage);
+    return code;
+  }
+
+  async reviewCode(code, requirements) {
+    const reviewerPage = this.pages[1];
+    
+    console.log('🔍 Enviando código para Claude Reviewer...');
+    
+    await reviewerPage.type('[data-testid="chat-input"]', `
+      ROLE: Senior Code Reviewer
+      
+      CÓDIGO PARA ANÁLISE:
+      \`\`\`
+      ${code}
+      \`\`\`
+      
+      REQUISITOS ORIGINAIS: ${requirements}
+      
+      ANÁLISE NECESSÁRIA:
+      1. Funcionalidade vs requisitos
+      2. Bugs potenciais
+      3. Performance
+      4. Arquitetura
+      5. Segurança
+      6. Best practices React Native
+      
+      FORMATO:
+      ## APROVAÇÃO: [APROVADO/REVISÃO/REJEITADO]
+      ## PROBLEMAS: [lista]
+      ## SUGESTÕES: [melhorias]
+      ## CÓDIGO CORRIGIDO: [se necessário]
+    `);
+
+    await reviewerPage.click('[data-testid="send-button"]');
+    await this.waitForResponse(reviewerPage);
+    
+    const review = await this.extractTextFromResponse(reviewerPage);
+    return review;
+  }
+
+  async createTests(code) {
+    const testerPage = this.pages[2];
+    
+    console.log('🧪 Enviando código para Claude Tester...');
+    
+    await testerPage.type('[data-testid="chat-input"]', `
+      ROLE: QA Engineer & Test Specialist
+      
+      CÓDIGO PARA TESTE:
+      \`\`\`
+      ${code}
+      \`\`\`
+      
+      CRIAR:
+      1. Testes unitários (Jest)
+      2. Testes de integração
+      3. Edge cases
+      4. Mocks necessários
+      5. Setup de teste
+      
+      FRAMEWORK: Jest + React Native Testing Library
+      
+      ENTREGAR: Suite completa de testes
+    `);
+
+    await testerPage.click('[data-testid="send-button"]');
+    await this.waitForResponse(testerPage);
+    
+    const tests = await this.extractCodeFromResponse(testerPage);
+    return tests;
+  }
+
+  async runFullWorkflow(requirements) {
+    try {
+      await this.initializeMultipleClaudes();
+      
+      const code = await this.createCode(requirements);
+      console.log('✅ Código criado');
+      
+      const review = await this.reviewCode(code, requirements);
+      console.log('✅ Código revisado');
+      
+      const tests = await this.createTests(code);
+      console.log('✅ Testes criados');
+      
+      return { code, review, tests };
+      
+    } catch (error) {
+      console.error('❌ Erro no workflow:', error);
+    } finally {
+      await this.cleanup();
+    }
+  }
+
+  async waitForResponse(page) {
+    // Aguardar a resposta aparecer
+    await page.waitForSelector('.message:last-child', { timeout: 60000 });
+    await page.waitForFunction(() => {
+      const lastMessage = document.querySelector('.message:last-child');
+      return !lastMessage.querySelector('.loading-indicator');
+    }, { timeout: 120000 });
+  }
+
+  async extractCodeFromResponse(page) {
+    return await page.evaluate(() => {
+      const codeBlocks = document.querySelectorAll('.message:last-child code, .message:last-child pre');
+      return Array.from(codeBlocks).map(block => block.textContent).join('\n');
+    });
+  }
+
+  async extractTextFromResponse(page) {
+    return await page.evaluate(() => {
+      const lastMessage = document.querySelector('.message:last-child');
+      return lastMessage ? lastMessage.textContent : '';
+    });
+  }
+
+  waitForUserInput(message) {
+    return new Promise(resolve => {
+      const readline = require('readline').createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      
+      readline.question(message, () => {
+        readline.close();
+        resolve();
+      });
+    });
+  }
+
+  async cleanup() {
+    for (const browser of this.browsers) {
+      await browser.close();
+    }
+  }
+}
+
+// Uso
+async function main() {
+  const automator = new ClaudeBrowserAutomator();
+  
+  const requirements = `
+    Componente de login React Native com:
+    - Email/senha
+    - Validação
+    - Loading state
+    - Navegação
+    - Error handling
+  `;
+
+  const result = await automator.runFullWorkflow(requirements);
+  
+  console.log('🎉 RESULTADO:', result);
+}
+
+main().catch(console.error);
+```
+
+---
+
+### **Método 4: Prompt Templates Especializados**
+
+#### **4.1 - Prompts para cada Claude**
+
+```markdown
+## 📝 PROMPT CLAUDE CREATOR
+Você é um **desenvolvedor React Native senior** com 10+ anos de experiência.
+
+**RESPONSABILIDADES:**
+- Criar código funcional e otimizado
+- Seguir best practices móveis
+- Implementar tratamento de erro robusto
+- Escrever código limpo e documentado
+- Pensar em performance mobile
+
+**FORMATO DE RESPOSTA:**
+```javascript
+// Código aqui
+```
+
+**SEMPRE INCLUA:**
+- Imports necessários
+- PropTypes ou TypeScript
+- Tratamento de erro
+- Loading states
+- Comentários explicativos
+
+---
+
+## 🔍 PROMPT CLAUDE REVIEWER  
+Você é um **tech lead** especializado em code review para mobile.
+
+**RESPONSABILIDADES:**
+- Identificar bugs e vulnerabilidades
+- Verificar performance issues
+- Validar arquitetura e padrões
+- Sugerir melhorias específicas
+- Aprovar ou rejeitar código
+
+**FORMATO DE ANÁLISE:**
+## 🎯 APROVAÇÃO: [APROVADO/REVISÃO NECESSÁRIA/REJEITADO]
+
+### 📋 PROBLEMAS IDENTIFICADOS:
+- [problema específico com linha/função]
+
+### 💡 SUGESTÕES:
+- [melhoria específica com exemplo]
+
+### 🔧 CÓDIGO CORRIGIDO:
+```javascript
+// código melhorado
+```
+
+---
+
+## 🧪 PROMPT CLAUDE TESTER
+Você é um **QA engineer** especializado em testes automatizados React Native.
+
+**RESPONSABILIDADES:**
+- Criar testes unitários completos
+- Identificar edge cases
+- Configurar mocks necessários
+- Garantir cobertura de testes
+- Setup de ambiente de teste
+
+**FORMATO DE ENTREGA:**
+```javascript
+// Testes completos aqui
+```
+
+**SEMPRE INCLUA:**
+- describe/it blocks organizados
+- beforeEach/afterEach setup
+- Mocks para APIs/navegação
+- Testes de componente e lógica
+- Edge cases e error scenarios
+```
+
+---
+
+## 🚀 SCRIPT DE EXECUÇÃO
+
+```bash
+#!/bin/bash
+# run-multi-claude.sh
+
+echo "🚀 Iniciando Multi-Claude Code Review System"
+
+# Método 1: API
+node orchestrator.js
+
+# Método 2: Interface Web
+python -m http.server 8000 &
+open http://localhost:8000
+
+# Método 3: Browser Automation
+node browser-automation.js
+
+echo "✅ Sistema Multi-Claude ativo!"
+```
+
+---
+
+## 📊 COMPARAÇÃO DOS MÉTODOS
+
+| Método | Automação | Custo | Complexidade | Confiabilidade |
+|--------|-----------|-------|--------------|----------------|
+| **API** | 100% | Alto | Média | Alta |
+| **Web Interface** | 50% | Baixo | Baixa | Média |
+| **Browser Automation** | 80% | Baixo | Alta | Média |
+| **Prompt Templates** | 0% | Baixo | Baixa | Alta |
+
+## 💡 RECOMENDAÇÃO
+
+**Para começar:** Use o **Método 2 (Interface Web)** - é visual, fácil e eficiente.
+
+**Para produção:** Evolua para o **Método 1 (API)** quando precisar de automação completa.
+
+**Para testes:** Use **Método 4 (Prompts)** com abas manuais do Claude.
+
+---
+
+**Qual método você quer implementar primeiro?** 🤔

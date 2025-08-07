@@ -158,7 +158,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const inicializarSistema = async () => {
     try {
-      console.log('🚀 Inicializando sistema TreinosApp...');
+      if (__DEV__) console.log('🚀 Inicializando sistema TreinosApp...');
       
       // Iniciar limpeza automática de cache
       CacheManager.iniciarLimpezaAutomatica();
@@ -172,7 +172,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
       // Carregar treino padrão se necessário
       await carregarTreinoPadrao();
       
-      console.log('✅ Sistema TreinosApp inicializado com sucesso');
+      if (__DEV__) console.log('✅ Sistema TreinosApp inicializado com sucesso');
     } catch (error) {
       console.error('❌ Erro na inicialização:', error);
       tratarErro(error as Error, 'Inicialização do sistema');
@@ -184,7 +184,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const carregarExerciciosPadrao = async () => {
     if (exercicios.length === 0) {
-      console.log('📚 Carregando exercícios padrão...');
+      if (__DEV__) console.log('📚 Carregando exercícios padrão...');
       
       // Exercícios básicos brasileiros
       const exerciciosPadrao: Omit<Exercicio, 'id' | 'criadoEm'>[] = [
@@ -244,7 +244,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
         await adicionarExercicio(exercicio);
       }
       
-      console.log(`✅ ${exerciciosPadrao.length} exercícios padrão carregados`);
+      if (__DEV__) console.log(`✅ ${exerciciosPadrao.length} exercícios padrão carregados`);
     }
   };
 
@@ -253,7 +253,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const carregarTreinoPadrao = async () => {
     if (treinos.length === 0) {
-      console.log('🏋️ Carregando treino padrão...');
+      if (__DEV__) console.log('🏋️ Carregando treino padrão...');
       
       // Treino padrão brasileiro
       const treinoPadrao: Omit<Treino, 'id' | 'criadoEm' | 'atualizadoEm' | 'sincronizado'> = {
@@ -296,7 +296,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
       };
 
       await criarTreino(treinoPadrao);
-      console.log('✅ Treino padrão criado: Peito e Tríceps');
+      if (__DEV__) console.log('✅ Treino padrão criado: Peito e Tríceps');
     }
   };
 
@@ -305,13 +305,13 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const sincronizarDados = async () => {
     try {
-      console.log('🔄 Iniciando sincronização...');
+      if (__DEV__) console.log('🔄 Iniciando sincronização...');
       const resultado = await CacheService.sincronizarDados();
       
       if (resultado.sucesso) {
-        console.log(`✅ Sincronização bem-sucedida: ${resultado.itensSincronizados} itens`);
+        if (__DEV__) console.log(`✅ Sincronização bem-sucedida: ${resultado.itensSincronizados} itens`);
       } else {
-        console.warn(`⚠️ Sincronização com problemas: ${resultado.erros.length} erros`);
+        if (__DEV__) console.warn(`⚠️ Sincronização com problemas: ${resultado.erros.length} erros`);
       }
     } catch (error) {
       console.error('❌ Erro na sincronização:', error);
@@ -324,11 +324,11 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const limparCache = async () => {
     try {
-      console.log('🧹 Iniciando limpeza de cache...');
+      if (__DEV__) console.log('🧹 Iniciando limpeza de cache...');
       const resultado = await CacheService.limparCacheExpirado();
       
       if (resultado.itensRemovidos > 0) {
-        console.log(`🗑️ Cache limpo: ${resultado.itensRemovidos} itens removidos`);
+        if (__DEV__) console.log(`🗑️ Cache limpo: ${resultado.itensRemovidos} itens removidos`);
         Alert.alert(
           'Cache Limpo',
           `${resultado.itensRemovidos} itens antigos foram removidos para liberar espaço.`,
@@ -348,7 +348,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const criarBackup = async () => {
     try {
-      console.log('💾 Criando backup...');
+      if (__DEV__) console.log('💾 Criando backup...');
       const sucesso = await CacheService.criarBackupCompleto();
       
       if (sucesso) {
@@ -375,7 +375,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    */
   const recarregarTodos = async () => {
     try {
-      console.log('🔄 Recarregando todos os dados...');
+      if (__DEV__) console.log('🔄 Recarregando todos os dados...');
       
       await Promise.all([
         recarregarUsuario(),
@@ -386,7 +386,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
         recarregarEstatisticas()
       ]);
       
-      console.log('✅ Todos os dados recarregados');
+      if (__DEV__) console.log('✅ Todos os dados recarregados');
     } catch (error) {
       console.error('❌ Erro ao recarregar:', error);
       tratarErro(error as Error, 'Recarregamento de dados');
@@ -397,7 +397,7 @@ export function FitnessProvider({ children }: FitnessProviderProps) {
    * Tratamento centralizado de erros
    */
   const tratarErro = (error: Error, contexto: string) => {
-    console.error(`❌ Erro em ${contexto}:`, error);
+    if (__DEV__) console.error(`❌ Erro em ${contexto}:`, error);
     
     // Determinar tipo de erro e mensagem amigável
     let mensagem = 'Algo deu errado. Tente novamente.';

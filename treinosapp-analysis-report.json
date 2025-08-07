@@ -1,0 +1,100 @@
+{
+  "timestamp": "2025-08-06T01:14:50.910Z",
+  "loadTime": 1386,
+  "analysisResult": {
+    "registerWebModuleError": true,
+    "renderingWorking": true,
+    "criticalErrors": 0,
+    "hasContent": true,
+    "loadTime": 1386,
+    "totalLogs": 5
+  },
+  "domStructure": {
+    "hasReactRoot": true,
+    "hasAppContent": false,
+    "hasNavigationContainer": false,
+    "hasLoginScreen": false,
+    "hasErrorBoundary": false
+  },
+  "consoleLogs": [
+    {
+      "type": "warning",
+      "text": "\"shadow*\" style props are deprecated. Use \"boxShadow\".",
+      "location": {
+        "url": "http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+        "lineNumber": 33141,
+        "columnNumber": 14
+      },
+      "timestamp": "2025-08-06T01:14:45.103Z"
+    },
+    {
+      "type": "log",
+      "text": "📡 Network Status: ONLINE",
+      "location": {
+        "url": "http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+        "lineNumber": 135387,
+        "columnNumber": 18
+      },
+      "timestamp": "2025-08-06T01:14:45.107Z"
+    },
+    {
+      "type": "log",
+      "text": "📡 Network Status: ONLINE",
+      "location": {
+        "url": "http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+        "lineNumber": 135387,
+        "columnNumber": 18
+      },
+      "timestamp": "2025-08-06T01:14:45.108Z"
+    },
+    {
+      "type": "log",
+      "text": "📡 Network Status: ONLINE",
+      "location": {
+        "url": "http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+        "lineNumber": 135387,
+        "columnNumber": 18
+      },
+      "timestamp": "2025-08-06T01:14:45.108Z"
+    },
+    {
+      "type": "log",
+      "text": "📡 Network Status: ONLINE",
+      "location": {
+        "url": "http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+        "lineNumber": 135387,
+        "columnNumber": 18
+      },
+      "timestamp": "2025-08-06T01:14:45.130Z"
+    }
+  ],
+  "errors": [
+    {
+      "message": "(0 , _expoModulesCore.registerWebModule) is not a function",
+      "stack": "TypeError: (0 , _expoModulesCore.registerWebModule) is not a function\n    at http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:64398:75\n    at loadModuleImplementation (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:256:7)\n    at guardedLoadModule (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:163:14)\n    at metroRequire (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:83:75)\n    at http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:64368:47\n    at loadModuleImplementation (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:256:7)\n    at guardedLoadModule (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:163:14)\n    at metroRequire (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:83:75)\n    at http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:62036:20\n    at loadModuleImplementation (http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app:256:7)",
+      "timestamp": "2025-08-06T01:14:45.106Z"
+    }
+  ],
+  "networkRequests": [
+    {
+      "url": "http://localhost:8081/",
+      "method": "GET",
+      "timestamp": "2025-08-06T01:14:44.269Z"
+    },
+    {
+      "url": "http://localhost:8081/node_modules%5Cexpo%5CAppEntry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app",
+      "method": "GET",
+      "timestamp": "2025-08-06T01:14:44.289Z"
+    },
+    {
+      "url": "http://localhost:8081/",
+      "method": "HEAD",
+      "timestamp": "2025-08-06T01:14:45.107Z"
+    },
+    {
+      "url": "http://localhost:8081/",
+      "method": "HEAD",
+      "timestamp": "2025-08-06T01:14:45.108Z"
+    }
+  ]
+}

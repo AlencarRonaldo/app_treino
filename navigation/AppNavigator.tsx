@@ -45,6 +45,8 @@ function TabNavigator() {
             iconName = focused ? 'people' : 'people-outline';
           } else if (route.name === 'Progress') {
             iconName = focused ? 'stats-chart' : 'stats-chart-outline';
+          } else if (route.name === 'Reports') {
+            iconName = focused ? 'analytics' : 'analytics-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           } else {

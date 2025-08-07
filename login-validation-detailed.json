@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-08-06T03:06:14.605Z",
+  "credentials": "joao.personal@treinosapp.com",
+  "tests": [],
+  "summary": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "errors": [
+      "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:8082/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:8082/\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    ]
+  }
+}

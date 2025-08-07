@@ -8,6 +8,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './contexts/AuthContext';
 import { UserTypeProvider } from './contexts/UserTypeContext';
 import { FitnessProvider } from './contexts/FitnessContext';
+import { RealtimeProvider } from './contexts/RealtimeContext';
 import RootNavigator from './navigation/RootNavigator';
 import { theme } from './constants/theme';
 
@@ -19,10 +20,12 @@ export default function App() {
           <AuthProvider>
             <UserTypeProvider>
               <FitnessProvider>
-                <NavigationContainer>
-                  <StatusBar style="auto" />
-                  <RootNavigator />
-                </NavigationContainer>
+                <RealtimeProvider>
+                  <NavigationContainer>
+                    <StatusBar style="auto" />
+                    <RootNavigator />
+                  </NavigationContainer>
+                </RealtimeProvider>
               </FitnessProvider>
             </UserTypeProvider>
           </AuthProvider>

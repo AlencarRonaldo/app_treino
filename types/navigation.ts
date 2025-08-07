@@ -11,14 +11,23 @@ export type RootStackParamList = {
   Notifications: undefined;
   Help: undefined;
   About: undefined;
+  // PT Analytics Screens
+  BusinessAnalytics: undefined;
+  StudentPerformanceAnalytics: undefined;
+  // Student Analytics Screens
+  PersonalGoals: undefined;
+  Achievements: undefined;
 };
 
 // Tipos para navegação de autenticação
 export type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
+  ForgotPassword: undefined;
   UserTypeSelection: undefined;
+  ProfileCompletion: undefined;
   MainApp: undefined;
+  App: undefined;
 };
 
 // Tipos para navegação de tabs
@@ -28,6 +37,7 @@ export type TabParamList = {
   Workouts: undefined;
   Students: undefined;
   Progress: undefined;
+  Reports: undefined; // PT only
   Profile: undefined;
 };
 

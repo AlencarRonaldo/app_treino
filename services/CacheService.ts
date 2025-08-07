@@ -69,9 +69,9 @@ export class CacheService {
       // Atualizar registro de metadata
       await this.atualizarRegistroMetadata(chave, metadata);
       
-      console.log(`✅ Cache atualizado: ${chave} (${this.formatarTamanho(metadata.tamanhoBytes)})`);
+      if (__DEV__) console.log(`✅ Cache atualizado: ${chave} (${this.formatarTamanho(metadata.tamanhoBytes)})`);
     } catch (error) {
-      console.error(`❌ Erro ao armazenar cache ${chave}:`, error);
+      if (__DEV__) console.error(`❌ Erro ao armazenar cache ${chave}:`, error);
       throw new Error(`Falha ao cachear ${chave}: ${error}`);
     }
   }
@@ -89,14 +89,14 @@ export class CacheService {
       // Verificar expiração
       if (this.verificarExpiracao(metadata)) {
         await this.removerCache(chave);
-        console.log(`🗑️ Cache expirado removido: ${chave}`);
+        if (__DEV__) console.log(`🗑️ Cache expirado removido: ${chave}`);
         return null;
       }
 
-      console.log(`📦 Cache recuperado: ${chave}`);
+      if (__DEV__) console.log(`📦 Cache recuperado: ${chave}`);
       return dados as T;
     } catch (error) {
-      console.error(`❌ Erro ao recuperar cache ${chave}:`, error);
+      if (__DEV__) console.error(`❌ Erro ao recuperar cache ${chave}:`, error);
       return null;
     }
   }
@@ -108,9 +108,9 @@ export class CacheService {
     try {
       await AsyncStorage.removeItem(chave);
       await this.removerRegistroMetadata(chave);
-      console.log(`🗑️ Cache removido: ${chave}`);
+      if (__DEV__) console.log(`🗑️ Cache removido: ${chave}`);
     } catch (error) {
-      console.error(`❌ Erro ao remover cache ${chave}:`, error);
+      if (__DEV__) console.error(`❌ Erro ao remover cache ${chave}:`, error);
     }
   }
 
@@ -152,7 +152,7 @@ export class CacheService {
       const filaSync = await this.recuperarCache<ItemSincronizacao[]>(this.CACHE_KEYS.FILA_SYNC) || [];
       const itensParaSincronizar = filaSync.filter(item => !item.sucesso && item.tentativas < 3);
 
-      console.log(`🔄 Iniciando sincronização de ${itensParaSincronizar.length} itens`);
+      if (__DEV__) console.log(`🔄 Iniciando sincronização de ${itensParaSincronizar.length} itens`);
 
       // Processar cada item
       for (const item of itensParaSincronizar) {
@@ -160,11 +160,11 @@ export class CacheService {
           await this.processarItemSincronizacao(item);
           item.sucesso = true;
           resultado.itensSincronizados++;
-          console.log(`✅ Item sincronizado: ${item.tipo} - ${item.id}`);
+          if (__DEV__) console.log(`✅ Item sincronizado: ${item.tipo} - ${item.id}`);
         } catch (error) {
           item.tentativas++;
           resultado.erros.push(`Erro ao sincronizar ${item.tipo}: ${error}`);
-          console.error(`❌ Falha na sincronização ${item.tipo}:`, error);
+          if (__DEV__) console.error(`❌ Falha na sincronização ${item.tipo}:`, error);
         }
       }
 
@@ -172,7 +172,7 @@ export class CacheService {
       await this.armazenarComExpiracao(this.CACHE_KEYS.FILA_SYNC, filaSync, 168);
       
       resultado.sucesso = resultado.erros.length === 0;
-      console.log(`🎯 Sincronização concluída: ${resultado.itensSincronizados} sucessos, ${resultado.erros.length} erros`);
+      if (__DEV__) console.log(`🎯 Sincronização concluída: ${resultado.itensSincronizados} sucessos, ${resultado.erros.length} erros`);
       
       return resultado;
     } catch (error) {
@@ -204,9 +204,9 @@ export class CacheService {
       fila.push(novoItem);
       await this.armazenarComExpiracao(this.CACHE_KEYS.FILA_SYNC, fila, 168);
       
-      console.log(`📤 Adicionado à fila de sincronização: ${tipo}`);
+      if (__DEV__) console.log(`📤 Adicionado à fila de sincronização: ${tipo}`);
     } catch (error) {
-      console.error('❌ Erro ao adicionar à fila de sincronização:', error);
+      if (__DEV__) console.error('❌ Erro ao adicionar à fila de sincronização:', error);
     }
   }
 
@@ -254,15 +254,15 @@ export class CacheService {
             itensRemovidos++;
           }
         } catch (error) {
-          console.error(`Erro ao verificar expiração de ${chave}:`, error);
+          if (__DEV__) console.error(`Erro ao verificar expiração de ${chave}:`, error);
         }
       }
 
-      console.log(`🧹 Limpeza concluída: ${itensRemovidos} itens removidos, ${this.formatarTamanho(espacoLiberado)} liberados`);
+      if (__DEV__) console.log(`🧹 Limpeza concluída: ${itensRemovidos} itens removidos, ${this.formatarTamanho(espacoLiberado)} liberados`);
       
       return { itensRemovidos, espacoLiberado };
     } catch (error) {
-      console.error('❌ Erro na limpeza de cache:', error);
+      if (__DEV__) console.error('❌ Erro na limpeza de cache:', error);
       return { itensRemovidos: 0, espacoLiberado: 0 };
     }
   }
@@ -296,7 +296,7 @@ export class CacheService {
             }
           }
         } catch (error) {
-          console.error(`Erro ao analisar ${chave}:`, error);
+          if (__DEV__) console.error(`Erro ao analisar ${chave}:`, error);
         }
       }
 
@@ -310,7 +310,7 @@ export class CacheService {
         fragmentacao
       };
     } catch (error) {
-      console.error('❌ Erro ao obter estatísticas:', error);
+      if (__DEV__) console.error('❌ Erro ao obter estatísticas:', error);
       return {
         totalItens: 0,
         tamanhoTotal: 0,
@@ -338,10 +338,10 @@ export class CacheService {
       };
 
       await this.armazenarComExpiracao(this.CACHE_KEYS.BACKUP, dadosBackup, 168);
-      console.log('💾 Backup completo criado com sucesso');
+      if (__DEV__) console.log('💾 Backup completo criado com sucesso');
       return true;
     } catch (error) {
-      console.error('❌ Erro ao criar backup:', error);
+      if (__DEV__) console.error('❌ Erro ao criar backup:', error);
       return false;
     }
   }
@@ -355,7 +355,7 @@ export class CacheService {
       registros[chave] = metadata;
       await AsyncStorage.setItem(this.CACHE_KEYS.METADATA, JSON.stringify(registros));
     } catch (error) {
-      console.error('Erro ao atualizar metadata:', error);
+      if (__DEV__) console.error('Erro ao atualizar metadata:', error);
     }
   }
 
@@ -365,7 +365,7 @@ export class CacheService {
       delete registros[chave];
       await AsyncStorage.setItem(this.CACHE_KEYS.METADATA, JSON.stringify(registros));
     } catch (error) {
-      console.error('Erro ao remover metadata:', error);
+      if (__DEV__) console.error('Erro ao remover metadata:', error);
     }
   }
 
@@ -390,15 +390,15 @@ export class CacheManager {
 
     // Limpeza a cada 6 horas
     this.intervalId = setInterval(async () => {
-      console.log('🔄 Iniciando limpeza automática de cache...');
+      if (__DEV__) console.log('🔄 Iniciando limpeza automática de cache...');
       const resultado = await CacheService.limparCacheExpirado();
       
       if (resultado.itensRemovidos > 0) {
-        console.log(`✨ Limpeza automática: ${resultado.itensRemovidos} itens removidos`);
+        if (__DEV__) console.log(`✨ Limpeza automática: ${resultado.itensRemovidos} itens removidos`);
       }
     }, 6 * 60 * 60 * 1000); // 6 horas
 
-    console.log('⏰ Limpeza automática de cache iniciada');
+    if (__DEV__) console.log('⏰ Limpeza automática de cache iniciada');
   }
 
   /**
@@ -408,7 +408,7 @@ export class CacheManager {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.log('⏸️ Limpeza automática de cache parada');
+      if (__DEV__) console.log('⏸️ Limpeza automática de cache parada');
     }
   }
 }
