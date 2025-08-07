@@ -17,12 +17,62 @@ import { useFitness } from '../../contexts/FitnessContext';
 import { usePermissions } from '../../treinosapp-mobile/hooks/usePermissions';
 import StudentWorkoutCard from '../../components/student/StudentWorkoutCard';
 import { WorkoutsScreenNavigationProp } from '../../types/navigation';
+import { useRenderDebug } from '../../utils/debugRenderLoop';
 
 const studentCategories = [
   { id: 'proximo', name: 'Próximo', icon: 'play-circle' },
   { id: 'meus', name: 'Meus Treinos', icon: 'barbell' },
   { id: 'historico', name: 'Histórico', icon: 'time' },
 ];
+
+// Move calculateStreak para fora do componente para evitar recriação
+const calculateStreak = (workouts: any[]) => {
+  const completedWorkouts = workouts
+    .filter(w => w.concluido)
+    .sort((a, b) => 
+      new Date(b.dataFinalizacao || b.data).getTime() - 
+      new Date(a.dataFinalizacao || a.data).getTime()
+    );
+
+  if (completedWorkouts.length === 0) return 0;
+
+  let streak = 0;
+  let currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  for (const workout of completedWorkouts) {
+    const workoutDate = new Date(workout.dataFinalizacao || workout.data);
+    workoutDate.setHours(0, 0, 0, 0);
+    
+    const diffDays = Math.floor((currentDate.getTime() - workoutDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === streak) {
+      streak++;
+    } else if (diffDays === streak + 1) {
+      // Permitir um dia de intervalo
+      continue;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+};
+
+const getDifficulty = (itemCount: number) => {
+  if (itemCount <= 4) return 'Básico';
+  if (itemCount <= 7) return 'Intermediário';
+  return 'Avançado';
+};
+
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'Básico': return '#00D632';
+    case 'Intermediário': return '#FFB800';
+    case 'Avançado': return '#FF3B30';
+    default: return FigmaTheme.colors.textSecondary;
+  }
+};
 
 interface StudentWorkoutsScreenProps {}
 
@@ -33,8 +83,13 @@ export default function StudentWorkoutsScreen({}: StudentWorkoutsScreenProps) {
   const { treinos, carregando } = useFitness();
   const { isStudent } = usePermissions();
 
+  // Debug render loops
+  useRenderDebug('StudentWorkoutsScreen', [treinos, carregando, isStudent, selectedTab]);
+
   // Estatísticas do aluno otimizadas com useMemo
   const studentStats = useMemo(() => {
+    console.log('📊 StudentWorkoutsScreen - Calculando stats para:', treinos.length, 'treinos');
+    
     const completed = treinos.filter(t => t.concluido).length;
     const total = treinos.length;
     const pending = total - completed;
@@ -61,6 +116,8 @@ export default function StudentWorkoutsScreen({}: StudentWorkoutsScreenProps) {
 
   // Próximo treino recomendado
   const nextWorkout = useMemo(() => {
+    console.log('📋 StudentWorkoutsScreen - Calculando nextWorkout para:', treinos.length, 'treinos');
+    
     const incompleteTreinos = treinos.filter(t => !t.concluido);
     if (incompleteTreinos.length === 0) return null;
     
@@ -75,6 +132,8 @@ export default function StudentWorkoutsScreen({}: StudentWorkoutsScreenProps) {
   }, [treinos]);
 
   const filteredWorkouts = useMemo(() => {
+    console.log('🔍 StudentWorkoutsScreen - Filtrando treinos para tab:', selectedTab, 'de', treinos.length, 'treinos');
+    
     let filtered = treinos;
 
     switch (selectedTab) {
@@ -104,41 +163,10 @@ export default function StudentWorkoutsScreen({}: StudentWorkoutsScreenProps) {
         break;
     }
 
+    console.log('🎯 StudentWorkoutsScreen - Filtrados:', filtered.length, 'treinos');
     return filtered;
   }, [treinos, selectedTab]);
 
-  const calculateStreak = (workouts: any[]) => {
-    const completedWorkouts = workouts
-      .filter(w => w.concluido)
-      .sort((a, b) => 
-        new Date(b.dataFinalizacao || b.data).getTime() - 
-        new Date(a.dataFinalizacao || a.data).getTime()
-      );
-
-    if (completedWorkouts.length === 0) return 0;
-
-    let streak = 0;
-    let currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
-
-    for (const workout of completedWorkouts) {
-      const workoutDate = new Date(workout.dataFinalizacao || workout.data);
-      workoutDate.setHours(0, 0, 0, 0);
-      
-      const diffDays = Math.floor((currentDate.getTime() - workoutDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === streak) {
-        streak++;
-      } else if (diffDays === streak + 1) {
-        // Permitir um dia de intervalo
-        continue;
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  };
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -297,20 +325,6 @@ export default function StudentWorkoutsScreen({}: StudentWorkoutsScreenProps) {
     </Card>
   );
 
-  const getDifficulty = (itemCount: number) => {
-    if (itemCount <= 4) return 'Básico';
-    if (itemCount <= 7) return 'Intermediário';
-    return 'Avançado';
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Básico': return '#00D632';
-      case 'Intermediário': return '#FFB800';
-      case 'Avançado': return '#FF3B30';
-      default: return FigmaTheme.colors.textSecondary;
-    }
-  };
 
   const renderEmptyState = () => {
     const emptyMessages = {

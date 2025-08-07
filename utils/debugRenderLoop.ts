@@ -3,7 +3,7 @@
  * Helps identify which component is causing "Maximum update depth exceeded" error
  */
 
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 interface RenderInfo {
   componentName: string;
@@ -174,7 +174,7 @@ export function withRenderDebug<P extends object>(
   const DebuggedComponent = (props: P) => {
     const name = componentName || Component.displayName || Component.name || 'Unknown';
     useRenderDebug(name, Object.values(props));
-    return <Component {...props} />;
+    return React.createElement(Component, props);
   };
   
   DebuggedComponent.displayName = `WithRenderDebug(${componentName || Component.displayName || Component.name})`;

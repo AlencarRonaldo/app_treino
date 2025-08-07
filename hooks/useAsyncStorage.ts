@@ -51,25 +51,30 @@ export function useAsyncStorage<T>(
     } finally {
       setCarregando(false);
     }
-  }, [chave, validador]);
+  }, [chave]);
 
   /**
    * Salva valor no AsyncStorage
    */
-  const salvarValor = useCallback(async (valor: T) => {
+  const salvarValor = useCallback(async (valor: T | ((current: T) => T)) => {
     try {
       setErro(null);
       
+      // Suporte para função updater
+      const novoValor = typeof valor === 'function' 
+        ? (valor as (current: T) => T)(valorArmazenado)
+        : valor;
+      
       // Validar antes de salvar
-      if (validador && !validador(valor)) {
+      if (validador && !validador(novoValor)) {
         const msgErro = `Dados inválidos para salvar na chave: ${chave}`;
-        console.error(msgErro, valor);
+        console.error(msgErro, novoValor);
         throw new Error(msgErro);
       }
       
-      const valorString = JSON.stringify(valor);
+      const valorString = JSON.stringify(novoValor);
       await AsyncStorage.setItem(chave, valorString);
-      setValorArmazenado(valor);
+      setValorArmazenado(novoValor);
       
       console.log(`💾 Dados salvos: ${chave} (${valorString.length} chars)`);
     } catch (error) {
@@ -78,7 +83,7 @@ export function useAsyncStorage<T>(
       setErro(error as Error);
       throw error;
     }
-  }, [chave, validador]);
+  }, [chave, validador, valorArmazenado]);
 
   /**
    * Recarrega dados do storage
@@ -124,17 +129,15 @@ export function useAsyncStorageArray<T>(
    * Adiciona item ao array
    */
   const adicionarItem = useCallback(async (item: T) => {
-    const novosItems = [...items, item];
-    await setItems(novosItems);
-  }, [items, setItems]);
+    await setItems(currentItems => [...currentItems, item]);
+  }, [setItems]);
 
   /**
    * Remove itens baseado em predicado
    */
   const removerItem = useCallback(async (predicate: (item: T) => boolean) => {
-    const novosItems = items.filter(item => !predicate(item));
-    await setItems(novosItems);
-  }, [items, setItems]);
+    await setItems(currentItems => currentItems.filter(item => !predicate(item)));
+  }, [setItems]);
 
   /**
    * Atualiza itens baseado em predicado
@@ -143,11 +146,12 @@ export function useAsyncStorageArray<T>(
     predicate: (item: T) => boolean, 
     novosDados: Partial<T>
   ) => {
-    const novosItems = items.map(item =>
-      predicate(item) ? { ...item, ...novosDados } : item
+    await setItems(currentItems => 
+      currentItems.map(item =>
+        predicate(item) ? { ...item, ...novosDados } : item
+      )
     );
-    await setItems(novosItems);
-  }, [items, setItems]);
+  }, [setItems]);
 
   /**
    * Limpa todos os itens
