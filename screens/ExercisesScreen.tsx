@@ -14,6 +14,15 @@ import FigmaScreen from '../components/FigmaScreen';
 import { FigmaTheme } from '../constants/figmaTheme';
 import { useFitness } from '../contexts/FitnessContext';
 import { Exercicio } from '../types/fitness';
+import { 
+  getHorizontalPadding, 
+  getVerticalPadding, 
+  getResponsiveValue,
+  getResponsiveFontSize,
+  getResponsiveGridColumns,
+  TOUCH_TARGETS,
+  isSmallMobile
+} from '../utils/responsive';
 
 const exerciseCategories = [
   { id: 'todos', name: 'Todos', icon: 'grid' as const },
@@ -255,14 +264,16 @@ const styles = StyleSheet.create({
     backgroundColor: FigmaTheme.colors.background,
   },
   header: {
-    paddingHorizontal: 32,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: getHorizontalPadding(),
+    paddingTop: getVerticalPadding(),
+    paddingBottom: getResponsiveValue(16, 24, 32),
   },
   title: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 28,
+    fontSize: getResponsiveFontSize(28, { min: 24, max: 32 }),
     fontWeight: '700',
+    numberOfLines: 1,
+    ellipsizeMode: 'tail',
   },
   subtitle: {
     color: FigmaTheme.colors.textSecondary,
@@ -273,12 +284,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
-    marginHorizontal: 32,
+    marginHorizontal: getHorizontalPadding(),
     borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 24,
-    gap: 12,
+    minHeight: TOUCH_TARGETS.MIN,
+    paddingHorizontal: getResponsiveValue(12, 16, 20),
+    paddingVertical: getResponsiveValue(8, 12, 16),
+    marginBottom: getResponsiveValue(16, 24, 32),
+    gap: getResponsiveValue(8, 12, 16),
   },
   searchIcon: {
     
@@ -293,17 +305,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   categoriesContent: {
-    paddingHorizontal: 32,
-    gap: 12,
+    paddingHorizontal: getHorizontalPadding(),
+    gap: getResponsiveValue(8, 12, 16),
   },
   categoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    minHeight: TOUCH_TARGETS.MIN,
+    paddingHorizontal: getResponsiveValue(12, 16, 20),
+    paddingVertical: getResponsiveValue(6, 8, 10),
     borderRadius: 20,
-    gap: 8,
+    gap: getResponsiveValue(6, 8, 10),
   },
   categoryButtonActive: {
     backgroundColor: '#FF6B35',
@@ -317,15 +330,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   exercisesList: {
-    paddingHorizontal: 32,
-    paddingBottom: 100,
+    paddingHorizontal: getHorizontalPadding(),
+    paddingBottom: getResponsiveValue(80, 100, 120),
   },
   exerciseCard: {
     backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: getResponsiveValue(8, 12, 16),
+    padding: getResponsiveValue(12, 16, 20),
+    marginBottom: getResponsiveValue(8, 12, 16),
     position: 'relative',
+    minHeight: TOUCH_TARGETS.LARGE,
   },
   exerciseHeader: {
     flexDirection: 'row',
@@ -335,10 +349,12 @@ const styles = StyleSheet.create({
   },
   exerciseName: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 18,
+    fontSize: getResponsiveFontSize(18, { min: 16, max: 20 }),
     fontWeight: '600',
     flex: 1,
-    marginRight: 12,
+    marginRight: getResponsiveValue(8, 12, 16),
+    numberOfLines: 2,
+    ellipsizeMode: 'tail',
   },
   difficultyBadge: {
     borderWidth: 1,
@@ -351,9 +367,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   exerciseInfo: {
-    flexDirection: 'row',
-    gap: 20,
-    marginBottom: 12,
+    flexDirection: isSmallMobile() ? 'column' : 'row',
+    gap: getResponsiveValue(12, 16, 20),
+    marginBottom: getResponsiveValue(8, 12, 16),
+    flexWrap: 'wrap',
   },
   infoItem: {
     flexDirection: 'row',

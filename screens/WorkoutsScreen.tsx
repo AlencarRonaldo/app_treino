@@ -8,6 +8,13 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useUserType } from '../contexts/UserTypeContext';
 import TrainerWorkoutsScreen from './pt/TrainerWorkoutsScreen';
 import StudentWorkoutsScreen from './student/StudentWorkoutsScreen';
+import {
+  SPACING,
+  TYPOGRAPHY,
+  getResponsiveLayout,
+  getSafeAreaPadding,
+  getResponsiveValue
+} from '../utils/responsive';
 
 /**
  * WorkoutsScreen - Tela Principal de Treinos com Diferenciação de Usuário
@@ -64,24 +71,28 @@ export default function WorkoutsScreen() {
   );
 }
 
+const layout = getResponsiveLayout();
+const safeArea = getSafeAreaPadding();
+
 const styles = StyleSheet.create({
   // Loading States
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: layout.containerPadding,
+    ...safeArea,
   },
   loadingTitle: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 24,
+    ...TYPOGRAPHY.H3,
     fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: SPACING.MD,
+    marginBottom: SPACING.XS,
   },
   loadingText: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 16,
+    ...TYPOGRAPHY.BODY,
     textAlign: 'center',
   },
   
@@ -90,20 +101,21 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: layout.containerPadding,
+    ...safeArea,
   },
   errorTitle: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 24,
+    ...TYPOGRAPHY.H3,
     fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: SPACING.MD,
+    marginBottom: SPACING.XS,
     textAlign: 'center',
   },
   errorDescription: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 16,
+    ...TYPOGRAPHY.BODY,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: TYPOGRAPHY.BODY.lineHeight,
   },
 });

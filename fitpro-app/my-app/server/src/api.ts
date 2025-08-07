@@ -32,7 +32,13 @@ app.use('*', async (c, next) => {
 
 // Middleware
 app.use('*', logger());
-app.use('*', cors());
+app.use('*', cors({
+  origin: ['http://localhost:3000', 'http://localhost:19006', 'http://localhost:8081', 'http://localhost:8082', 'http://localhost:3001', 'http://localhost:3005', 'http://localhost:19000', 'http://localhost:19001', 'http://localhost:19002'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Platform', 'X-App-Version', 'X-Request-Id'],
+  credentials: true,
+  maxAge: 86400,
+}));
 
 // Health check route - public
 app.get('/', (c) => c.json({ status: 'ok', message: 'API is running' }));

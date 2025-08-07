@@ -34,6 +34,24 @@ import { FigmaTheme } from '../constants/figmaTheme';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserType } from '../contexts/UserTypeContext';
 import { AuthStackNavigationProp } from '../types/navigation';
+import { 
+  getHorizontalPadding, 
+  getVerticalPadding, 
+  getResponsiveValue,
+  getResponsiveFontSize,
+  TOUCH_TARGETS,
+  SCREEN_WIDTH,
+  SPACING,
+  TYPOGRAPHY,
+  getResponsiveLayout,
+  getResponsiveInputStyle,
+  getResponsiveButtonStyle,
+  getResponsiveModalStyle,
+  getSafeAreaPadding,
+  isSmallMobile,
+  getFormFieldSpacing,
+  mediaQuery
+} from '../utils/responsive';
 
 const { width, height } = Dimensions.get('window');
 
@@ -331,6 +349,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   );
 }
 
+const layout = getResponsiveLayout();
+const safeArea = getSafeAreaPadding();
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -341,106 +362,108 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: FigmaTheme.colors.background,
+    paddingHorizontal: layout.containerPadding,
+    ...safeArea,
   },
   loadingText: {
-    marginTop: FigmaTheme.spacing.md,
+    marginTop: SPACING.MD,
     color: FigmaTheme.colors.textSecondary,
+    ...TYPOGRAPHY.BODY,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 40,
+    paddingHorizontal: layout.containerPadding,
+    paddingTop: getResponsiveValue(40, 60, 80, 100),
+    paddingBottom: Math.max(SPACING.XL, safeArea.paddingBottom),
+    minHeight: '100%',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 60,
+    marginBottom: getResponsiveValue(40, 50, 60, 80),
   },
   loginHeaderText: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 16,
-    fontWeight: '400',
+    ...TYPOGRAPHY.BODY,
     position: 'absolute',
-    top: -40,
+    top: getResponsiveValue(-30, -35, -40, -45),
     left: 0,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 16,
+    width: getResponsiveValue(70, 80, 90, 100),
+    height: getResponsiveValue(70, 80, 90, 100),
+    borderRadius: layout.borderRadius,
     backgroundColor: '#2C2C2E',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 40,
+    marginTop: getResponsiveValue(30, 40, 50, 60),
   },
   logoIcon: {
-    width: 40,
-    height: 40,
+    width: getResponsiveValue(35, 40, 45, 50),
+    height: getResponsiveValue(35, 40, 45, 50),
   },
   dumbbellIcon: {
-    width: 32,
-    height: 16,
+    width: getResponsiveValue(28, 32, 36, 40),
+    height: getResponsiveValue(14, 16, 18, 20),
     backgroundColor: '#FF6B35',
-    borderRadius: 8,
+    borderRadius: getResponsiveValue(6, 8, 10, 12),
   },
   loginForm: {
     flex: 1,
   },
   signInText: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 14,
+    ...TYPOGRAPHY.BODY_SMALL,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.LG,
   },
   socialButtons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 32,
+    flexDirection: isSmallMobile() ? 'column' : 'row',
+    gap: SPACING.SM,
+    marginBottom: SPACING.XL,
   },
   googleButton: {
-    flex: 1,
+    flex: isSmallMobile() ? undefined : 1,
+    width: isSmallMobile() ? '100%' : undefined,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    gap: 8,
+    ...getResponsiveButtonStyle(),
+    borderRadius: layout.borderRadius,
+    gap: SPACING.XS,
   },
   googleButtonText: {
     color: '#333333',
-    fontSize: 16,
+    ...TYPOGRAPHY.BODY,
     fontWeight: '500',
   },
   facebookButton: {
-    flex: 1,
+    flex: isSmallMobile() ? undefined : 1,
+    width: isSmallMobile() ? '100%' : undefined,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#1877F2',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    gap: 8,
+    ...getResponsiveButtonStyle(),
+    borderRadius: layout.borderRadius,
+    gap: SPACING.XS,
   },
   facebookButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    ...TYPOGRAPHY.BODY,
     fontWeight: '500',
   },
   inputContainer: {
-    gap: 16,
-    marginBottom: 32,
+    gap: getFormFieldSpacing(),
+    marginBottom: SPACING.XL,
   },
   inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
+    borderRadius: layout.borderRadius,
+    ...getResponsiveInputStyle(),
+    gap: SPACING.SM,
   },
   inputIcon: {
     
@@ -448,24 +471,26 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 16,
-    paddingVertical: 4,
+    ...TYPOGRAPHY.BODY,
+    paddingVertical: SPACING.XXS,
+    ...mediaQuery.smallMobile({ fontSize: 16 }), // Evita zoom no iOS
   },
   loginButton: {
     backgroundColor: '#FF6B35',
-    paddingVertical: 16,
-    borderRadius: 8,
+    ...getResponsiveButtonStyle(),
+    minHeight: TOUCH_TARGETS.COMFORTABLE,
+    borderRadius: layout.borderRadius,
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.LG,
   },
   loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    ...TYPOGRAPHY.BODY,
     fontWeight: '600',
   },
   registerLink: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 14,
+    ...TYPOGRAPHY.BODY_SMALL,
     textAlign: 'center',
   },
   registerLinkBold: {
@@ -474,38 +499,42 @@ const styles = StyleSheet.create({
   },
   forgotPasswordContainer: {
     alignItems: 'center',
-    marginVertical: 12,
+    marginVertical: SPACING.SM,
+    minHeight: TOUCH_TARGETS.MIN,
+    justifyContent: 'center',
   },
   forgotPasswordText: {
     color: FigmaTheme.colors.primary,
-    fontSize: 14,
+    ...TYPOGRAPHY.BODY_SMALL,
     fontWeight: '500',
   },
   userTypeSection: {
-    marginTop: 24,
+    marginTop: SPACING.LG,
     alignItems: 'center',
   },
   userTypeTitle: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 12,
+    ...TYPOGRAPHY.CAPTION,
     fontWeight: '400',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.XS,
   },
   userTypeButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING.XS,
+    justifyContent: 'center',
   },
   userTypeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#2C2C2E',
-    borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderRadius: getResponsiveValue(6, 8, 10, 12),
+    paddingVertical: SPACING.XS,
+    paddingHorizontal: SPACING.SM,
     borderWidth: 1,
     borderColor: 'transparent',
-    gap: 6,
+    gap: SPACING.XXS,
+    minHeight: TOUCH_TARGETS.MIN * 0.8,
   },
   userTypeButtonActive: {
     backgroundColor: '#FF6B35',
@@ -513,39 +542,47 @@ const styles = StyleSheet.create({
   },
   userTypeButtonText: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 11,
+    ...TYPOGRAPHY.CAPTION,
     fontWeight: '500',
   },
   userTypeButtonTextActive: {
     color: '#FFFFFF',
   },
   testAccountsSection: {
-    marginTop: 20,
-    marginBottom: 12,
+    marginTop: SPACING.MD,
+    marginBottom: SPACING.SM,
     backgroundColor: 'rgba(255, 107, 53, 0.05)',
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: layout.borderRadius,
+    padding: SPACING.SM,
     borderLeftWidth: 3,
     borderLeftColor: '#FF6B35',
   },
   testAccountsTitle: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 12,
+    ...TYPOGRAPHY.CAPTION,
     fontWeight: '500',
-    marginBottom: 8,
+    marginBottom: SPACING.XS,
     textAlign: 'center',
   },
   testAccountButton: {
     backgroundColor: 'rgba(255, 107, 53, 0.1)',
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    marginBottom: 6,
+    borderRadius: getResponsiveValue(4, 6, 8, 10),
+    paddingVertical: SPACING.XXS,
+    paddingHorizontal: SPACING.XS,
+    marginBottom: SPACING.XXS,
+    minHeight: TOUCH_TARGETS.MIN * 0.7,
+    justifyContent: 'center',
   },
   testAccountText: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 11,
+    ...TYPOGRAPHY.CAPTION,
     fontWeight: '400',
     textAlign: 'center',
   },
 });
+
+// Adicionar validação para setValue
+function setValue(field: string, value: string) {
+  // Esta função deveria vir do react-hook-form
+  console.warn('setValue não está implementada corretamente');
+}

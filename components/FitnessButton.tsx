@@ -2,6 +2,11 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Button, useTheme } from 'react-native-paper';
 import { DesignTokens } from '../constants/designTokens';
+import { 
+  getResponsiveButtonStyle, 
+  getResponsiveFontSize,
+  TOUCH_TARGETS 
+} from '../utils/responsive';
 
 interface FitnessButtonProps {
   title: string;
@@ -54,12 +59,25 @@ export default function FitnessButton({
   const getButtonStyle = () => {
     const baseStyle = {
       borderRadius: DesignTokens.borderRadius.md,
+      minHeight: size === 'small' ? TOUCH_TARGETS.MIN : 
+                size === 'large' ? TOUCH_TARGETS.LARGE : TOUCH_TARGETS.BUTTON,
     };
 
+    const responsiveStyle = getResponsiveButtonStyle();
+    
     const sizeStyle = {
-      small: { paddingVertical: DesignTokens.spacing.xs },
-      medium: { paddingVertical: DesignTokens.spacing.sm },
-      large: { paddingVertical: DesignTokens.spacing.md },
+      small: { 
+        paddingVertical: responsiveStyle.paddingVertical * 0.75,
+        paddingHorizontal: responsiveStyle.paddingHorizontal * 0.75,
+      },
+      medium: { 
+        paddingVertical: responsiveStyle.paddingVertical,
+        paddingHorizontal: responsiveStyle.paddingHorizontal,
+      },
+      large: { 
+        paddingVertical: responsiveStyle.paddingVertical * 1.25,
+        paddingHorizontal: responsiveStyle.paddingHorizontal * 1.25,
+      },
     };
 
     const widthStyle = fullWidth ? { alignSelf: 'stretch' as const } : {};
@@ -74,9 +92,24 @@ export default function FitnessButton({
 
   const getLabelStyle = () => {
     const sizeStyle = {
-      small: { fontSize: DesignTokens.typography.fontSize.sm },
-      medium: { fontSize: DesignTokens.typography.fontSize.base },
-      large: { fontSize: DesignTokens.typography.fontSize.lg },
+      small: { 
+        fontSize: getResponsiveFontSize(
+          DesignTokens.typography.fontSize.sm, 
+          { min: 12, max: 16 }
+        ) 
+      },
+      medium: { 
+        fontSize: getResponsiveFontSize(
+          DesignTokens.typography.fontSize.base,
+          { min: 14, max: 18 }
+        ) 
+      },
+      large: { 
+        fontSize: getResponsiveFontSize(
+          DesignTokens.typography.fontSize.lg,
+          { min: 16, max: 22 }
+        ) 
+      },
     };
 
     return [

@@ -11,8 +11,13 @@ import { FitnessProvider } from './contexts/FitnessContext';
 import { RealtimeProvider } from './contexts/RealtimeContext';
 import RootNavigator from './navigation/RootNavigator';
 import { theme } from './constants/theme';
+import { useRenderDebug } from './utils/debugRenderLoop';
 
 export default function App() {
+  // Debug para detectar loops de renderização
+  if (__DEV__) {
+    useRenderDebug('App');
+  }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

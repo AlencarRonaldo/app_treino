@@ -9,6 +9,16 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUserType } from '../contexts/UserTypeContext';
 import { useFitness } from '../contexts/FitnessContext';
 import { RootStackNavigationProp } from '../types/navigation';
+import {
+  SPACING,
+  TYPOGRAPHY,
+  getResponsiveLayout,
+  getSafeAreaPadding,
+  getResponsiveValue,
+  getResponsiveButtonStyle,
+  getFormFieldSpacing,
+  TOUCH_TARGETS
+} from '../utils/responsive';
 
 export default function ProfileScreen() {
   const navigation = useNavigation<RootStackNavigationProp>();
@@ -487,57 +497,60 @@ export default function ProfileScreen() {
   );
 }
 
+const layout = getResponsiveLayout();
+const safeArea = getSafeAreaPadding();
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: FigmaTheme.colors.background,
   },
   header: {
-    paddingHorizontal: 32,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: layout.containerPadding,
+    paddingTop: Math.max(SPACING.MD, safeArea.paddingTop),
+    paddingBottom: SPACING.LG,
   },
   title: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 28,
+    ...TYPOGRAPHY.H2,
     fontWeight: '700',
   },
   content: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: Math.max(SPACING.XXL * 2, safeArea.paddingBottom + 50),
   },
   profileHeader: {
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingBottom: 32,
+    paddingHorizontal: layout.containerPadding,
+    paddingBottom: SPACING.XL,
   },
   avatarContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: SPACING.MD,
   },
   avatar: {
-    width: 80,
-    height: 80,
+    width: getResponsiveValue(70, 80, 90, 100),
+    height: getResponsiveValue(70, 80, 90, 100),
     backgroundColor: '#2C2C2E',
-    borderRadius: 40,
+    borderRadius: getResponsiveValue(35, 40, 45, 50),
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 24,
+    ...TYPOGRAPHY.H3,
     fontWeight: '600',
   },
   editAvatarButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 28,
-    height: 28,
+    width: getResponsiveValue(24, 28, 32, 36),
+    height: getResponsiveValue(24, 28, 32, 36),
     backgroundColor: '#FF6B35',
-    borderRadius: 14,
+    borderRadius: getResponsiveValue(12, 14, 16, 18),
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -545,41 +558,42 @@ const styles = StyleSheet.create({
   },
   userName: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 24,
+    ...TYPOGRAPHY.H3,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: SPACING.XXS,
   },
   userEmail: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 16,
-    marginBottom: 8,
+    ...TYPOGRAPHY.BODY,
+    marginBottom: SPACING.XS,
   },
   memberSince: {
     color: FigmaTheme.colors.textSecondary,
-    fontSize: 14,
+    ...TYPOGRAPHY.BODY_SMALL,
   },
   menuSection: {
-    marginBottom: 24,
+    marginBottom: SPACING.LG,
   },
   sectionTitle: {
     color: FigmaTheme.colors.textPrimary,
-    fontSize: 20,
+    ...TYPOGRAPHY.H4,
     fontWeight: '600',
-    paddingHorizontal: 32,
-    marginBottom: 12,
+    paddingHorizontal: layout.containerPadding,
+    marginBottom: SPACING.SM,
   },
   menuCard: {
     backgroundColor: '#2C2C2E',
-    marginHorizontal: 32,
-    borderRadius: 12,
+    marginHorizontal: layout.containerPadding,
+    borderRadius: layout.borderRadius,
     overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: SPACING.MD,
+    paddingVertical: SPACING.MD,
+    minHeight: TOUCH_TARGETS.MIN,
   },
   menuItemLeft: {
     flexDirection: 'row',

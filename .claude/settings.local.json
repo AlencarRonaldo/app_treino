@@ -91,7 +91,9 @@
       "Bash(timeout 30 npx expo start --web --port 8085)",
       "Bash(PORT=3002 npm run dev)",
       "Bash(PORT=3005 npm run dev)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(timeout 20 npm start)",
+      "Bash(timeout 20 npx expo start --web --port 8088)"
     ],
     "deny": []
   }

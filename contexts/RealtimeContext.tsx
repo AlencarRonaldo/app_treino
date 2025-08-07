@@ -3,7 +3,7 @@
  * Gerencia conexão, subscriptions e sincronização
  */
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from 'react';
 import { ConnectionStatus } from '../services/RealtimeService';
 import realtimeService from '../services/RealtimeService';
 import { useAuth } from './AuthContext';
@@ -54,9 +54,17 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active') {
         // App voltou para foreground - reconectar se necessário
-        if (!connectionStatus.isConnected) {
-          await reconnect();
-        }
+        // Use um timeout para evitar reconexões imediatas múltiplas
+        setTimeout(async () => {
+          try {
+            const currentStatus = await realtimeService.getConnectionStatus();
+            if (!currentStatus.isConnected) {
+              await reconnect();
+            }
+          } catch (error) {
+            console.error('Erro ao verificar status de conexão:', error);
+          }
+        }, 500);
       } else if (nextAppState === 'background') {
         // App foi para background - manter conexões essenciais
         // Mantém subscriptions para notificações push
@@ -68,12 +76,12 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     return () => {
       subscription?.remove();
     };
-  }, [user, realtimeEnabled, connectionStatus.isConnected]);
+  }, [user, realtimeEnabled]); // Remover connectionStatus.isConnected da dependência
 
   /**
    * Atualiza qualidade da conexão baseada no status
    */
-  const updateConnectionQuality = (status: ConnectionStatus) => {
+  const updateConnectionQuality = useCallback((status: ConnectionStatus) => {
     if (!status.isConnected) {
       setConnectionQuality('disconnected');
     } else if (status.connectionError) {
@@ -85,12 +93,12 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     } else {
       setConnectionQuality('excellent'); // Conexão recente e estável
     }
-  };
+  }, []);
 
   /**
    * Reconecta o serviço real-time
    */
-  const reconnect = async (): Promise<void> => {
+  const reconnect = useCallback(async (): Promise<void> => {
     if (!user || !realtimeEnabled) return;
     
     try {
@@ -98,24 +106,24 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     } catch (error) {
       console.error('Erro ao reconectar real-time:', error);
     }
-  };
+  }, [user, realtimeEnabled]);
 
   /**
    * Habilita funcionalidades real-time
    */
-  const enableRealtime = () => {
+  const enableRealtime = useCallback(() => {
     setRealtimeEnabled(true);
-  };
+  }, []);
 
   /**
    * Desabilita funcionalidades real-time
    */
-  const disableRealtime = () => {
+  const disableRealtime = useCallback(() => {
     setRealtimeEnabled(false);
     realtimeService.unsubscribeAll();
-  };
+  }, []);
 
-  const value: RealtimeContextData = {
+  const value: RealtimeContextData = useMemo(() => ({
     connectionStatus,
     isOnline: connectionStatus.isConnected,
     reconnect,
@@ -123,7 +131,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({ children }) 
     disableRealtime,
     realtimeEnabled,
     connectionQuality
-  };
+  }), [connectionStatus, reconnect, enableRealtime, disableRealtime, realtimeEnabled, connectionQuality]);
 
   return (
     <RealtimeContext.Provider value={value}>

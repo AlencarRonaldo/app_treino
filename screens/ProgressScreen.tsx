@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { Card, Text, SegmentedButtons, useTheme, Surface, ProgressBar, FAB, Button } from 'react-native-paper';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DesignTokens } from '../constants/designTokens';
@@ -10,8 +9,24 @@ import AnalyticsChart from '../components/AnalyticsChart';
 import KPIWidget from '../components/KPIWidget';
 import ProgressRing from '../components/ProgressRing';
 import ComparisonChart from '../components/ComparisonChart';
+import WebCompatibleChart from '../components/WebCompatibleChart';
+import WebCompatiblePressable from '../components/WebCompatiblePressable';
+import {
+  SPACING,
+  TYPOGRAPHY,
+  getResponsiveLayout,
+  getProgressChartSize,
+  getSafeAreaPadding,
+  getResponsiveValue,
+  isSmallMobile,
+  getResponsiveGridColumns,
+  getGridItemWidth
+} from '../utils/responsive';
 
 const { width } = Dimensions.get('window');
+const layout = getResponsiveLayout();
+const safeArea = getSafeAreaPadding();
+const chartSize = getProgressChartSize();
 
 export default function ProgressScreen({ navigation }: { navigation?: any }) {
   const theme = useTheme();
@@ -192,7 +207,7 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.achievementsContainer}>
             {achievements.map((achievement) => (
-              <TouchableOpacity
+              <WebCompatiblePressable
                 key={achievement.id}
                 style={[
                   styles.achievementItem,
@@ -215,7 +230,7 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
                 <Text variant="bodySmall" style={styles.achievementDescription}>
                   {achievement.description}
                 </Text>
-              </TouchableOpacity>
+              </WebCompatiblePressable>
             ))}
           </View>
         </ScrollView>
@@ -435,7 +450,7 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
 
       {/* Estatísticas em Cards Visuais */}
       <View style={styles.statsGrid}>
-        <TouchableOpacity style={styles.statCard}>
+        <WebCompatiblePressable style={styles.statCard}>
           <LinearGradient
             colors={[DesignTokens.colors.primary, `${DesignTokens.colors.primary}CC`]}
             style={styles.statGradient}
@@ -448,9 +463,9 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
               <Text style={styles.statTrendText}>+20%</Text>
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </WebCompatiblePressable>
 
-        <TouchableOpacity style={styles.statCard}>
+        <WebCompatiblePressable style={styles.statCard}>
           <LinearGradient
             colors={[DesignTokens.colors.error, `${DesignTokens.colors.error}CC`]}
             style={styles.statGradient}
@@ -463,9 +478,9 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
               <Text style={styles.statTrendText}>+15%</Text>
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </WebCompatiblePressable>
 
-        <TouchableOpacity style={styles.statCard}>
+        <WebCompatiblePressable style={styles.statCard}>
           <LinearGradient
             colors={[DesignTokens.colors.success, `${DesignTokens.colors.success}CC`]}
             style={styles.statGradient}
@@ -478,9 +493,9 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
               <Text style={styles.statTrendText}>+8%</Text>
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </WebCompatiblePressable>
 
-        <TouchableOpacity style={styles.statCard}>
+        <WebCompatiblePressable style={styles.statCard}>
           <LinearGradient
             colors={[DesignTokens.colors.warning, `${DesignTokens.colors.warning}CC`]}
             style={styles.statGradient}
@@ -493,7 +508,7 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
               <Text style={styles.statTrendText}>+25%</Text>
             </View>
           </LinearGradient>
-        </TouchableOpacity>
+        </WebCompatiblePressable>
       </View>
 
       {/* Seletor de Métricas */}
@@ -508,7 +523,7 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
               { id: 'volume', label: 'Volume', icon: 'barbell' },
               { id: 'muscles', label: 'Grupos', icon: 'body' },
             ].map((metric) => (
-              <TouchableOpacity
+              <WebCompatiblePressable
                 key={metric.id}
                 style={[
                   styles.metricButton,
@@ -527,7 +542,7 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
                 ]}>
                   {metric.label}
                 </Text>
-              </TouchableOpacity>
+              </WebCompatiblePressable>
             ))}
           </View>
         </ScrollView>
@@ -538,12 +553,12 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
         <Card style={styles.chartCard}>
           <Card.Title title="Evolução do Peso" subtitle="Últimos 7 dias" />
           <Card.Content>
-            <LineChart
+            <WebCompatibleChart
+              type="line"
               data={weightData}
               width={width - 64}
               height={220}
               chartConfig={chartConfig}
-              bezier
               style={styles.chart}
             />
           </Card.Content>
@@ -554,12 +569,11 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
         <Card style={styles.chartCard}>
           <Card.Title title="Volume de Treino" subtitle="Kg movimentados por dia" />
           <Card.Content>
-            <BarChart
+            <WebCompatibleChart
+              type="bar"
               data={workoutVolumeData}
               width={width - 64}
               height={220}
-              yAxisLabel=""
-              yAxisSuffix="kg"
               chartConfig={{
                 ...chartConfig,
                 color: (opacity = 1) => `${DesignTokens.colors.secondary}${Math.round(opacity * 255).toString(16)}`,
@@ -574,14 +588,17 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
         <Card style={styles.chartCard}>
           <Card.Title title="Distribuição por Grupo Muscular" subtitle="Séries realizadas esta semana" />
           <Card.Content>
-            <PieChart
-              data={muscleGroupData}
+            <WebCompatibleChart
+              type="pie"
+              data={{
+                labels: muscleGroupData.map(item => item.name),
+                datasets: [{
+                  data: muscleGroupData.map(item => item.sets)
+                }]
+              }}
               width={width - 64}
               height={220}
               chartConfig={chartConfig}
-              accessor="sets"
-              backgroundColor="transparent"
-              paddingLeft="15"
               style={styles.chart}
             />
           </Card.Content>
@@ -612,9 +629,9 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
               Suas melhores marcas
             </Text>
           </View>
-          <TouchableOpacity>
+          <WebCompatiblePressable>
             <Text style={styles.seeAllText}>Ver todos</Text>
-          </TouchableOpacity>
+          </WebCompatiblePressable>
         </View>
         
         <View style={styles.recordsContent}>
@@ -682,56 +699,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    padding: DesignTokens.spacing.lg,
-    paddingBottom: DesignTokens.spacing.md,
+    paddingHorizontal: layout.containerPadding,
+    paddingTop: Math.max(SPACING.XL, safeArea.paddingTop),
+    paddingBottom: SPACING.MD,
   },
   headerTitle: {
+    ...TYPOGRAPHY.H2,
     fontWeight: DesignTokens.typography.fontWeight.bold as any,
     color: DesignTokens.colors.textPrimary,
   },
   headerSubtitle: {
+    ...TYPOGRAPHY.BODY,
     color: DesignTokens.colors.textSecondary,
-    marginTop: 4,
+    marginTop: SPACING.XXS,
   },
   segmentedContainer: {
-    paddingHorizontal: DesignTokens.spacing.lg,
-    marginBottom: DesignTokens.spacing.lg,
+    paddingHorizontal: layout.containerPadding,
+    marginBottom: SPACING.LG,
   },
   segmentedButtons: {
     backgroundColor: DesignTokens.colors.surface,
   },
   // Metas da Semana
   goalsCard: {
-    marginHorizontal: DesignTokens.spacing.md,
-    marginBottom: DesignTokens.spacing.lg,
+    marginHorizontal: layout.containerPadding,
+    marginBottom: SPACING.LG,
     backgroundColor: DesignTokens.colors.surface,
+    borderRadius: layout.borderRadius,
     ...DesignTokens.shadows.md,
   },
   cardHeaderWithGradient: {
     overflow: 'hidden',
-    borderTopLeftRadius: DesignTokens.borderRadius.lg,
-    borderTopRightRadius: DesignTokens.borderRadius.lg,
+    borderTopLeftRadius: layout.borderRadius,
+    borderTopRightRadius: layout.borderRadius,
   },
   goalHeaderGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: DesignTokens.spacing.lg,
+    padding: layout.cardPadding,
   },
   goalHeaderText: {
+    ...TYPOGRAPHY.H5,
     color: 'white',
     fontWeight: DesignTokens.typography.fontWeight.bold as any,
-    marginLeft: DesignTokens.spacing.sm,
+    marginLeft: SPACING.SM,
   },
   goalsContent: {
-    padding: DesignTokens.spacing.lg,
+    padding: layout.cardPadding,
   },
   goalItem: {
-    marginBottom: DesignTokens.spacing.md,
+    marginBottom: SPACING.MD,
   },
   goalInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: DesignTokens.spacing.xs,
+    marginBottom: SPACING.XS,
   },
   goalName: {
     fontWeight: DesignTokens.typography.fontWeight.medium as any,
