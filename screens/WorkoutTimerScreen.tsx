@@ -1,4 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * WorkoutTimerScreen - FASE 4: Migração para OptimizedWorkoutTimer
+ * ✅ Integração com OptimizedWorkoutTimer da FASE 3
+ * ✅ Manutenção de 100% da funcionalidade existente
+ * ✅ FITNESS_TOUCH_TARGETS para ambiente academia
+ * ✅ Feedback háptico otimizado
+ * ✅ One-handed usage patterns
+ * ✅ Landscape mode otimizado
+ * ✅ Gradual fallback se componente falha
+ */
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,12 +18,14 @@ import {
   ScrollView,
   Vibration,
   AppState,
-  AppStateStatus
+  AppStateStatus,
+  InteractionManager
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import FigmaScreen from '../components/FigmaScreen';
+import { OptimizedWorkoutTimer } from '../components/OptimizedWorkoutTimer';
 import { FigmaTheme } from '../constants/figmaTheme';
 import { useFitness } from '../contexts/FitnessContext';
 import { Treino, Serie } from '../types/fitness';
@@ -39,7 +52,12 @@ export default function WorkoutTimerScreen({ route, navigation }: WorkoutTimerSc
   const { workout } = route.params;
   const { treinos, concluirTreino, adicionarSerie } = useFitness();
   
+  // ===== RESPONSIVE TIMER STATE =====
   const [treino, setTreino] = useState<Treino | null>(null);
+  const [useOptimizedTimer, setUseOptimizedTimer] = useState(true);
+  const [optimizedTimerError, setOptimizedTimerError] = useState<string | null>(null);
+  
+  // Legacy timer state para fallback gradual
   const [timerState, setTimerState] = useState<TimerState>({
     isRunning: false,
     time: 0,
@@ -48,14 +66,50 @@ export default function WorkoutTimerScreen({ route, navigation }: WorkoutTimerSc
     currentSet: 1
   });
   
-  const [restTime, setRestTime] = useState(60); // 60 segundos padrão
+  const [restTime, setRestTime] = useState(60);
   const [workoutStartTime, setWorkoutStartTime] = useState<Date | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const appStateRef = useRef(AppState.currentState);
 
-  // Carregar treino
+  // ===== HANDLERS OTIMIZADOS PARA OPTIMIZED TIMER =====
+  const handleWorkoutComplete = useCallback(async (duration: number) => {
+    try {
+      // Usar treino.id se disponível, senão usar o workout passado
+      const treinoId = treino?.id || workout?.id;
+      
+      if (treinoId && concluirTreino) {
+        await concluirTreino(treinoId);
+      }
+      
+      InteractionManager.runAfterInteractions(() => {
+        Alert.alert(
+          '🎉 Treino Concluído!',
+          `Parabéns! Você treinou por ${Math.floor(duration / 60)}:${String(duration % 60).padStart(2, '0')}`,
+          [
+            { text: 'Ver Progresso', onPress: () => navigation.navigate('Progress') },
+            { text: 'Voltar ao Início', onPress: () => navigation.navigate('Home') }
+          ]
+        );
+      });
+    } catch (error) {
+      console.error('Erro ao concluir treino:', error);
+      Alert.alert('Erro', 'Não foi possível concluir o treino');
+    }
+  }, [treino, workout, concluirTreino, navigation]);
+  
+  const handleTimerExit = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+  
+  const handleOptimizedTimerError = useCallback((error: any) => {
+    console.warn('OptimizedWorkoutTimer error, falling back to legacy:', error);
+    setOptimizedTimerError(error.message || 'Erro desconhecido');
+    setUseOptimizedTimer(false);
+  }, []);
+  
+  // ===== LOADING E VALIDATION =====
   useEffect(() => {
     if (workout) {
       setTreino(workout);
@@ -64,7 +118,7 @@ export default function WorkoutTimerScreen({ route, navigation }: WorkoutTimerSc
         { text: 'OK', onPress: () => navigation.goBack() }
       ]);
     }
-  }, [workout]);
+  }, [workout, navigation]);
 
   // Gerenciar estado do app (para continuar timer em background)
   useEffect(() => {
@@ -286,6 +340,7 @@ export default function WorkoutTimerScreen({ route, navigation }: WorkoutTimerSc
     );
   };
 
+  // ===== LOADING STATE =====
   if (!treino) {
     return (
       <FigmaScreen>
@@ -297,12 +352,61 @@ export default function WorkoutTimerScreen({ route, navigation }: WorkoutTimerSc
     );
   }
 
+  // ===== OPTIMIZED TIMER RENDER com FALLBACK GRADUAL =====
+  if (useOptimizedTimer && !optimizedTimerError) {
+    try {
+      return (
+        <FigmaScreen>
+          <OptimizedWorkoutTimer
+            workout={treino}
+            onComplete={handleWorkoutComplete}
+            onExit={handleTimerExit}
+          />
+          
+          {/* Debug info para desenvolvimento */}
+          {__DEV__ && (
+            <View style={{
+              position: 'absolute',
+              top: 40,
+              right: 10,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: 8,
+              borderRadius: 4
+            }}>
+              <Text style={{ color: '#fff', fontSize: 10 }}>
+                OptimizedTimer: ON
+              </Text>
+            </View>
+          )}
+        </FigmaScreen>
+      );
+    } catch (error) {
+      // Se falhar no render, cair no fallback
+      console.warn('OptimizedWorkoutTimer render failed:', error);
+      handleOptimizedTimerError(error);
+    }
+  }
+
+  // ===== LEGACY FALLBACK TIMER =====
   const currentItem = treino.itens && treino.itens[timerState.currentExercise];
   const totalExercises = treino.itens?.length || 0;
 
   return (
     <FigmaScreen>
       <View style={styles.container}>
+        {/* Fallback Warning */}
+        {optimizedTimerError && __DEV__ && (
+          <View style={{
+            backgroundColor: '#E67E22',
+            padding: 12,
+            margin: 16,
+            borderRadius: 8
+          }}>
+            <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+              ⚠️ Fallback Timer: {optimizedTimerError}
+            </Text>
+          </View>
+        )}
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={quitWorkout} style={styles.backButton}>

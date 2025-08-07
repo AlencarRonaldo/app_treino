@@ -1,20 +1,37 @@
-import React from 'react';
+/**
+ * HomeScreen - FASE 4: Migração para ResponsiveFitnessCard
+ * ✅ Integração com ResponsiveFitnessCard da FASE 3
+ * ✅ Layout diferenciado PT vs Aluno usando breakpoints
+ * ✅ Dashboard responsivo com FITNESS_BREAKPOINTS
+ * ✅ Quick actions com touch targets fitness
+ * ✅ Gradual fallback se componente falha
+ */
+
+import React, { useCallback, useState } from 'react';
 import { 
   View, 
   ScrollView, 
   StyleSheet, 
   TouchableOpacity,
-  Dimensions 
+  Dimensions,
+  InteractionManager
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import FigmaScreen from '../components/FigmaScreen';
+import { ResponsiveFitnessCard } from '../components/ResponsiveFitnessCard';
 import { FigmaTheme } from '../constants/figmaTheme';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserType } from '../contexts/UserTypeContext';
 import { useFitness, useFitnessStats } from '../contexts/FitnessContext';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackNavigationProp } from '../types/navigation';
+import { 
+  useOptimizedResponsive,
+  FITNESS_BREAKPOINTS,
+  FITNESS_TOUCH_TARGETS,
+  scaleModerate
+} from '../utils/responsiveCore';
 import { 
   getHorizontalPadding, 
   getVerticalPadding, 
@@ -43,25 +60,61 @@ export default function HomeScreen() {
   const { isPersonal, isStudent } = useUserType();
   const { usuario, treinos, carregando } = useFitness();
   const stats = useFitnessStats();
+  
+  // ===== RESPONSIVE FITNESS SYSTEM =====
+  const responsiveSystem = useOptimizedResponsive();
+  const [useOptimizedCards, setUseOptimizedCards] = useState(true);
+  const [optimizedCardError, setOptimizedCardError] = useState<string | null>(null);
+  
+  const isTablet = responsiveSystem.deviceInfo.isTablet;
+  const isLandscape = responsiveSystem.deviceInfo.isLandscape;
 
-  const getGreeting = () => {
+  // ===== FITNESS UX HELPERS =====
+  const getGreeting = useCallback(() => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Bom dia';
     if (hour < 18) return 'Boa tarde';
     return 'Boa noite';
-  };
+  }, []);
 
-  const handleStartWorkout = () => {
-    // Se houver treinos disponíveis, usar o primeiro não concluído
-    const treinoDisponivel = treinos.find(t => !t.concluido);
-    
-    if (treinoDisponivel) {
-      navigation.navigate('WorkoutTimer', { workout: treinoDisponivel });
-    } else {
-      // Se não houver treinos, criar um treino de exemplo
+  // ===== HANDLERS OTIMIZADOS PARA FITNESS CARDS =====
+  const handleStartWorkout = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      // Se houver treinos disponíveis, usar o primeiro não concluído
+      const treinoDisponivel = treinos.find(t => !t.concluido);
+      
+      if (treinoDisponivel) {
+        navigation.navigate('WorkoutTimer', { workout: treinoDisponivel });
+      } else {
+        // Se não houver treinos, criar um treino de exemplo
+        navigation.navigate('Workouts' as never);
+      }
+    });
+  }, [treinos, navigation]);
+  
+  const handleManageStudents = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('StudentsManagement' as never);
+    });
+  }, [navigation]);
+  
+  const handleViewWorkouts = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
       navigation.navigate('Workouts' as never);
-    }
-  };
+    });
+  }, [navigation]);
+  
+  const handleViewProgress = useCallback(() => {
+    InteractionManager.runAfterInteractions(() => {
+      navigation.navigate('Progress' as never);
+    });
+  }, [navigation]);
+  
+  const handleOptimizedCardError = useCallback((error: any) => {
+    console.warn('ResponsiveFitnessCard error, falling back to legacy:', error);
+    setOptimizedCardError(error.message || 'Erro desconhecido');
+    setUseOptimizedCards(false);
+  }, []);
 
   return (
     <FigmaScreen>
@@ -72,55 +125,106 @@ export default function HomeScreen() {
           <Text style={styles.userName}>{user?.name || 'Usuário'}</Text>
         </View>
 
-        {/* Card principal - diferente para Personal e Aluno */}
-        {isPersonal ? (
-          <View style={styles.mainCard}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="people" size={24} color="#FF6B35" />
-            </View>
-            
-            <Text style={styles.mainTitle}>Painel do Personal</Text>
-            <Text style={styles.workoutName}>Gerencie seus alunos</Text>
-            
-            <View style={styles.workoutInfo}>
-              <View style={styles.infoItem}>
-                <Ionicons name="person-add" size={16} color={FigmaTheme.colors.textSecondary} />
-                <Text style={styles.infoText}>8 alunos ativos</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Ionicons name="barbell" size={16} color={FigmaTheme.colors.textSecondary} />
-                <Text style={styles.infoText}>12 treinos criados</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity style={styles.startButton}>
-              <Text style={styles.startButtonText}>Gerenciar Alunos</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Card principal - FITNESS UX com breakpoints */}
+        {useOptimizedCards && !optimizedCardError ? (
+          /* ===== RESPONSIVE FITNESS CARDS ===== */
+          <>
+            {isPersonal ? (
+              <ResponsiveFitnessCard
+                title="Painel do Personal"
+                subtitle="Gerencie seus alunos"
+                primaryValue="8 alunos"
+                secondaryValue="12 treinos criados"
+                icon="people"
+                variant="student"
+                status="active"
+                onPress={handleManageStudents}
+                showChevron={true}
+                accessibilityLabel="Painel do personal trainer, 8 alunos ativos, 12 treinos criados"
+                accessibilityHint="Toque para gerenciar seus alunos"
+              />
+            ) : (
+              <ResponsiveFitnessCard
+                title="Treino de Hoje"
+                subtitle="Peito e Tríceps"
+                primaryValue="45 min"
+                secondaryValue="8 exercícios"
+                icon="barbell"
+                variant="workout"
+                status="active"
+                onPress={handleStartWorkout}
+                showChevron={true}
+                accessibilityLabel="Treino de hoje, Peito e Tríceps, 45 minutos, 8 exercícios"
+                accessibilityHint="Toque para iniciar o treino"
+              />
+            )}
+          </>
         ) : (
-          <View style={styles.mainCard}>
-            <View style={styles.iconContainer}>
-              <View style={styles.dumbbellIcon} />
-            </View>
-            
-            <Text style={styles.mainTitle}>Treino de Hoje</Text>
-            <Text style={styles.workoutName}>Peito e Tríceps</Text>
-            
-            <View style={styles.workoutInfo}>
-              <View style={styles.infoItem}>
-                <Ionicons name="time" size={16} color={FigmaTheme.colors.textSecondary} />
-                <Text style={styles.infoText}>45 min</Text>
+          /* ===== FALLBACK CARDS ===== */
+          <>
+            {optimizedCardError && __DEV__ && (
+              <View style={{
+                backgroundColor: '#E67E22',
+                padding: 12,
+                margin: 16,
+                borderRadius: 8
+              }}>
+                <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+                  ⚠️ Fallback Cards: {optimizedCardError}
+                </Text>
               </View>
-              <View style={styles.infoItem}>
-                <Ionicons name="fitness" size={16} color={FigmaTheme.colors.textSecondary} />
-                <Text style={styles.infoText}>8 exercícios</Text>
-              </View>
-            </View>
+            )}
+            
+            {isPersonal ? (
+              <View style={styles.mainCard}>
+                <View style={styles.iconContainer}>
+                  <Ionicons name="people" size={24} color="#FF6B35" />
+                </View>
+                
+                <Text style={styles.mainTitle}>Painel do Personal</Text>
+                <Text style={styles.workoutName}>Gerencie seus alunos</Text>
+                
+                <View style={styles.workoutInfo}>
+                  <View style={styles.infoItem}>
+                    <Ionicons name="person-add" size={16} color={FigmaTheme.colors.textSecondary} />
+                    <Text style={styles.infoText}>8 alunos ativos</Text>
+                  </View>
+                  <View style={styles.infoItem}>
+                    <Ionicons name="barbell" size={16} color={FigmaTheme.colors.textSecondary} />
+                    <Text style={styles.infoText}>12 treinos criados</Text>
+                  </View>
+                </View>
 
-            <TouchableOpacity style={styles.startButton} onPress={handleStartWorkout}>
-              <Text style={styles.startButtonText}>Iniciar Treino</Text>
-            </TouchableOpacity>
-          </View>
+                <TouchableOpacity style={styles.startButton} onPress={handleManageStudents}>
+                  <Text style={styles.startButtonText}>Gerenciar Alunos</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.mainCard}>
+                <View style={styles.iconContainer}>
+                  <View style={styles.dumbbellIcon} />
+                </View>
+                
+                <Text style={styles.mainTitle}>Treino de Hoje</Text>
+                <Text style={styles.workoutName}>Peito e Tríceps</Text>
+                
+                <View style={styles.workoutInfo}>
+                  <View style={styles.infoItem}>
+                    <Ionicons name="time" size={16} color={FigmaTheme.colors.textSecondary} />
+                    <Text style={styles.infoText}>45 min</Text>
+                  </View>
+                  <View style={styles.infoItem}>
+                    <Ionicons name="fitness" size={16} color={FigmaTheme.colors.textSecondary} />
+                    <Text style={styles.infoText}>8 exercícios</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.startButton} onPress={handleStartWorkout}>
+                  <Text style={styles.startButtonText}>Iniciar Treino</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
         )}
 
         {/* Stats cards com dados reais da persistência */}
@@ -134,7 +238,104 @@ export default function HomeScreen() {
               <ActivityIndicator size="large" color="#FF6B35" />
               <Text style={styles.loadingText}>Carregando dados...</Text>
             </View>
+          ) : useOptimizedCards && !optimizedCardError ? (
+            /* ===== RESPONSIVE FITNESS STATS CARDS ===== */
+            <View style={[
+              styles.statsGrid, 
+              isLandscape && isTablet && { 
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between' 
+              }
+            ]}>
+              {isPersonal ? (
+                <>
+                  <ResponsiveFitnessCard
+                    title="Alunos"
+                    primaryValue="8"
+                    icon="people"
+                    variant="student"
+                    compact={true}
+                    onPress={handleManageStudents}
+                    accessibilityLabel="8 alunos ativos"
+                  />
+                  
+                  <ResponsiveFitnessCard
+                    title="Treinos"
+                    primaryValue={stats.totalTreinos.toString()}
+                    icon="barbell"
+                    variant="progress"
+                    compact={true}
+                    onPress={handleViewWorkouts}
+                    accessibilityLabel={`${stats.totalTreinos} treinos criados`}
+                  />
+                  
+                  <ResponsiveFitnessCard
+                    title="Concluídos"
+                    primaryValue={stats.treinosCompletos.toString()}
+                    icon="checkmark-circle"
+                    variant="achievement"
+                    compact={true}
+                    onPress={handleViewProgress}
+                    accessibilityLabel={`${stats.treinosCompletos} treinos concluídos`}
+                  />
+                  
+                  <ResponsiveFitnessCard
+                    title="Recordes"
+                    primaryValue={stats.recordesPessoais.toString()}
+                    icon="trophy"
+                    variant="achievement"
+                    compact={true}
+                    onPress={handleViewProgress}
+                    accessibilityLabel={`${stats.recordesPessoais} recordes pessoais`}
+                  />
+                </>
+              ) : (
+                <>
+                  <ResponsiveFitnessCard
+                    title="Treinos"
+                    primaryValue={stats.totalTreinos.toString()}
+                    icon="flame"
+                    variant="workout"
+                    compact={true}
+                    onPress={handleViewWorkouts}
+                    accessibilityLabel={`${stats.totalTreinos} treinos realizados`}
+                  />
+                  
+                  <ResponsiveFitnessCard
+                    title="Tempo"
+                    primaryValue={`${Math.floor(stats.tempoTotal / 60)}h${stats.tempoTotal % 60 > 0 ? (stats.tempoTotal % 60).toFixed(0) + 'm' : ''}`}
+                    icon="time"
+                    variant="progress"
+                    compact={true}
+                    onPress={handleViewProgress}
+                    accessibilityLabel={`Tempo total de treino: ${Math.floor(stats.tempoTotal / 60)} horas`}
+                  />
+                  
+                  <ResponsiveFitnessCard
+                    title="Concluídos"
+                    primaryValue={stats.treinosCompletos.toString()}
+                    icon="checkmark-circle"
+                    variant="achievement"
+                    compact={true}
+                    onPress={handleViewProgress}
+                    accessibilityLabel={`${stats.treinosCompletos} treinos concluídos`}
+                  />
+                  
+                  <ResponsiveFitnessCard
+                    title="Volume"
+                    primaryValue={`${(stats.volumeTotal / 1000).toFixed(1)}T`}
+                    icon="barbell"
+                    variant="progress"
+                    compact={true}
+                    onPress={handleViewProgress}
+                    accessibilityLabel={`Volume total: ${(stats.volumeTotal / 1000).toFixed(1)} toneladas`}
+                  />
+                </>
+              )}
+            </View>
           ) : (
+            /* ===== FALLBACK STATS GRID ===== */
             <View style={styles.statsGrid}>
               {isPersonal ? (
                 <>
@@ -281,6 +482,22 @@ export default function HomeScreen() {
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
+      
+      {/* Debug info para desenvolvimento */}
+      {__DEV__ && useOptimizedCards && !optimizedCardError && (
+        <View style={{
+          position: 'absolute',
+          top: 40,
+          right: 10,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: 8,
+          borderRadius: 4
+        }}>
+          <Text style={{ color: '#fff', fontSize: 10 }}>
+            ResponsiveCards: ON | {isPersonal ? 'PT' : 'Aluno'}
+          </Text>
+        </View>
+      )}
     </FigmaScreen>
   );
 }

@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
+/**
+ * ProgressScreen - FASE 4: Migração para OptimizedProgressChart
+ * ✅ Integração com OptimizedProgressChart da FASE 3
+ * ✅ Layout adaptativo para diferentes chart types
+ * ✅ Memory management automático
+ * ✅ Gradual fallback se componente falha
+ */
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, ScrollView, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 import { Card, Text, SegmentedButtons, useTheme, Surface, ProgressBar, FAB, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DesignTokens } from '../constants/designTokens';
 import { PerformanceCalculator } from '../services/PerformanceCalculator';
 import AnalyticsChart from '../components/AnalyticsChart';
+import { OptimizedProgressChart } from '../components/OptimizedProgressChart';
 import KPIWidget from '../components/KPIWidget';
 import ProgressRing from '../components/ProgressRing';
 import ComparisonChart from '../components/ComparisonChart';
@@ -30,10 +39,21 @@ const chartSize = getProgressChartSize();
 
 export default function ProgressScreen({ navigation }: { navigation?: any }) {
   const theme = useTheme();
+  
+  // ===== RESPONSIVE PROGRESS STATE =====
   const [timeRange, setTimeRange] = useState('week');
   const [selectedMetric, setSelectedMetric] = useState('weight');
   const [performanceData, setPerformanceData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [useOptimizedChart, setUseOptimizedChart] = useState(true);
+  const [optimizedChartError, setOptimizedChartError] = useState<string | null>(null);
+
+  // ===== HANDLERS OTIMIZADOS =====
+  const handleOptimizedChartError = useCallback((error: any) => {
+    console.warn('OptimizedProgressChart error, falling back to legacy:', error);
+    setOptimizedChartError(error.message || 'Erro desconhecido');
+    setUseOptimizedChart(false);
+  }, []);
 
   useEffect(() => {
     loadPerformanceData();
@@ -548,64 +568,144 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
         </ScrollView>
       </View>
 
-      {/* Gráficos Condicionais */}
-      {selectedMetric === 'weight' && (
-        <Card style={styles.chartCard}>
-          <Card.Title title="Evolução do Peso" subtitle="Últimos 7 dias" />
-          <Card.Content>
-            <WebCompatibleChart
-              type="line"
-              data={weightData}
-              width={width - 64}
-              height={220}
-              chartConfig={chartConfig}
-              style={styles.chart}
-            />
-          </Card.Content>
-        </Card>
+      {/* Gráficos Condicionais - FITNESS UX OTIMIZADOS */}
+      {useOptimizedChart && !optimizedChartError ? (
+        /* ===== OPTIMIZED PROGRESS CHARTS ===== */
+        <>
+          {selectedMetric === 'weight' && (
+            <Card style={styles.chartCard}>
+              <Card.Title title="Evolução do Peso" subtitle="Últimos 7 dias" />
+              <Card.Content>
+                <OptimizedProgressChart
+                  type="line"
+                  data={weightData}
+                  title="Evolução do Peso"
+                  timeRange={timeRange}
+                  enableAnimations={true}
+                  enableInteraction={true}
+                  showLegend={true}
+                  height={220}
+                />
+              </Card.Content>
+            </Card>
+          )}
+
+          {selectedMetric === 'volume' && (
+            <Card style={styles.chartCard}>
+              <Card.Title title="Volume de Treino" subtitle="Kg movimentados por dia" />
+              <Card.Content>
+                <OptimizedProgressChart
+                  type="bar"
+                  data={workoutVolumeData}
+                  title="Volume de Treino"
+                  timeRange={timeRange}
+                  enableAnimations={true}
+                  enableInteraction={true}
+                  showLegend={true}
+                  height={220}
+                />
+              </Card.Content>
+            </Card>
+          )}
+
+          {selectedMetric === 'muscles' && (
+            <Card style={styles.chartCard}>
+              <Card.Title title="Distribuição por Grupo Muscular" subtitle="Séries realizadas esta semana" />
+              <Card.Content>
+                <OptimizedProgressChart
+                  type="pie"
+                  data={{
+                    labels: muscleGroupData.map(item => item.name),
+                    datasets: [{
+                      data: muscleGroupData.map(item => item.sets)
+                    }]
+                  }}
+                  title="Distribuição por Grupo Muscular"
+                  timeRange={timeRange}
+                  enableAnimations={true}
+                  enableInteraction={true}
+                  showLegend={true}
+                  height={220}
+                />
+              </Card.Content>
+            </Card>
+          )}
+        </>
+      ) : (
+        /* ===== FALLBACK CHARTS ===== */
+        <>
+          {optimizedChartError && __DEV__ && (
+            <View style={{
+              backgroundColor: '#E67E22',
+              padding: 12,
+              margin: 16,
+              borderRadius: 8
+            }}>
+              <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+                ⚠️ Fallback Charts: {optimizedChartError}
+              </Text>
+            </View>
+          )}
+
+          {selectedMetric === 'weight' && (
+            <Card style={styles.chartCard}>
+              <Card.Title title="Evolução do Peso" subtitle="Últimos 7 dias" />
+              <Card.Content>
+                <WebCompatibleChart
+                  type="line"
+                  data={weightData}
+                  width={width - 64}
+                  height={220}
+                  chartConfig={chartConfig}
+                  style={styles.chart}
+                />
+              </Card.Content>
+            </Card>
+          )}
+
+          {selectedMetric === 'volume' && (
+            <Card style={styles.chartCard}>
+              <Card.Title title="Volume de Treino" subtitle="Kg movimentados por dia" />
+              <Card.Content>
+                <WebCompatibleChart
+                  type="bar"
+                  data={workoutVolumeData}
+                  width={width - 64}
+                  height={220}
+                  chartConfig={{
+                    ...chartConfig,
+                    color: (opacity = 1) => `${DesignTokens.colors.secondary}${Math.round(opacity * 255).toString(16)}`,
+                  }}
+                  style={styles.chart}
+                />
+              </Card.Content>
+            </Card>
+          )}
+
+          {selectedMetric === 'muscles' && (
+            <Card style={styles.chartCard}>
+              <Card.Title title="Distribuição por Grupo Muscular" subtitle="Séries realizadas esta semana" />
+              <Card.Content>
+                <WebCompatibleChart
+                  type="pie"
+                  data={{
+                    labels: muscleGroupData.map(item => item.name),
+                    datasets: [{
+                      data: muscleGroupData.map(item => item.sets)
+                    }]
+                  }}
+                  width={width - 64}
+                  height={220}
+                  chartConfig={chartConfig}
+                  style={styles.chart}
+                />
+              </Card.Content>
+            </Card>
+          )}
+        </>
       )}
 
-      {selectedMetric === 'volume' && (
-        <Card style={styles.chartCard}>
-          <Card.Title title="Volume de Treino" subtitle="Kg movimentados por dia" />
-          <Card.Content>
-            <WebCompatibleChart
-              type="bar"
-              data={workoutVolumeData}
-              width={width - 64}
-              height={220}
-              chartConfig={{
-                ...chartConfig,
-                color: (opacity = 1) => `${DesignTokens.colors.secondary}${Math.round(opacity * 255).toString(16)}`,
-              }}
-              style={styles.chart}
-            />
-          </Card.Content>
-        </Card>
-      )}
-
-      {selectedMetric === 'muscles' && (
-        <Card style={styles.chartCard}>
-          <Card.Title title="Distribuição por Grupo Muscular" subtitle="Séries realizadas esta semana" />
-          <Card.Content>
-            <WebCompatibleChart
-              type="pie"
-              data={{
-                labels: muscleGroupData.map(item => item.name),
-                datasets: [{
-                  data: muscleGroupData.map(item => item.sets)
-                }]
-              }}
-              width={width - 64}
-              height={220}
-              chartConfig={chartConfig}
-              style={styles.chart}
-            />
-          </Card.Content>
-        </Card>
-      )}
-
-        {/* Progress Comparison */}
+      {/* Progress Comparison */}
         {renderProgressComparison()}
 
         {/* Motivational Insights */}
@@ -686,6 +786,22 @@ export default function ProgressScreen({ navigation }: { navigation?: any }) {
         onStateChange={() => {}}
         style={styles.fabGroup}
       />
+      
+      {/* Debug info para desenvolvimento */}
+      {__DEV__ && useOptimizedChart && !optimizedChartError && (
+        <View style={{
+          position: 'absolute',
+          top: 40,
+          right: 10,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: 8,
+          borderRadius: 4
+        }}>
+          <Text style={{ color: '#fff', fontSize: 10 }}>
+            OptimizedChart: ON | Metric: {selectedMetric}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

@@ -93,7 +93,9 @@
       "Bash(PORT=3005 npm run dev)",
       "Bash(git commit:*)",
       "Bash(timeout 20 npm start)",
-      "Bash(timeout 20 npx expo start --web --port 8088)"
+      "Bash(timeout 20 npx expo start --web --port 8088)",
+      "WebFetch(domain:reactnative.dev)",
+      "WebFetch(domain:callstack.github.io)"
     ],
     "deny": []
   }

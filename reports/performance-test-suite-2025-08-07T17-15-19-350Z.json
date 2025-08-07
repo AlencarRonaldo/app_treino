@@ -1,0 +1,510 @@
+{
+  "timestamp": "2025-08-07T17:15:16.065Z",
+  "environment": {
+    "platform": "win32",
+    "node_version": "v22.18.0",
+    "timestamp": "2025-08-07T17:15:16.066Z",
+    "working_directory": "D:\\treinosapp",
+    "available_memory": {
+      "rss": 50380800,
+      "heapTotal": 5861376,
+      "heapUsed": 4725912,
+      "external": 1652546,
+      "arrayBuffers": 10515
+    },
+    "test_mode": "development"
+  },
+  "testSuites": [
+    {
+      "name": "Timer 60 FPS Validation",
+      "description": "Validate 60 FPS timer performance during workout execution",
+      "category": "performance",
+      "status": "passed",
+      "score": 100,
+      "metrics": {
+        "averageFPS": 59.453861599437104,
+        "worstFPS": 51.453861599437104,
+        "frameDrops": 0,
+        "consistency": 87.76649934027144,
+        "duration": 30000
+      },
+      "issues": [],
+      "critical": true,
+      "duration": 0,
+      "timestamp": "2025-08-07T17:15:16.074Z"
+    },
+    {
+      "name": "Bundle Size Analysis",
+      "description": "Monitor bundle size impact and cold start performance",
+      "category": "bundle",
+      "status": "passed",
+      "score": 100,
+      "metrics": {
+        "total_size": 52428800,
+        "js_bundle_size": 36700160,
+        "assets_size": 15728640,
+        "increment_from_baseline": 10485760,
+        "cold_start_impact": 253.2755839762844,
+        "memory_impact": 31457280,
+        "largest_modules": [
+          {
+            "name": "react-native",
+            "size": 8388608
+          },
+          {
+            "name": "performance-system",
+            "size": 5242880
+          },
+          {
+            "name": "charts-library",
+            "size": 3145728
+          },
+          {
+            "name": "navigation",
+            "size": 2097152
+          },
+          {
+            "name": "ui-components",
+            "size": 2621440
+          }
+        ]
+      },
+      "issues": [
+        "Large modules detected: react-native"
+      ],
+      "critical": false,
+      "duration": 0,
+      "timestamp": "2025-08-07T17:15:16.074Z"
+    },
+    {
+      "name": "Exercise List Scroll Performance",
+      "description": "Exercise List Scroll Performance",
+      "category": "ui_performance",
+      "status": "passed",
+      "score": 100,
+      "metrics": {
+        "small_list": {
+          "itemCount": 50,
+          "averageFPS": 59,
+          "frameDrops": 0.5,
+          "scrollEvents": 5,
+          "renderTime": 5,
+          "memoryUsage": 102400
+        },
+        "target_list": {
+          "itemCount": 200,
+          "averageFPS": 56,
+          "frameDrops": 2,
+          "scrollEvents": 20,
+          "renderTime": 20,
+          "memoryUsage": 409600
+        },
+        "stress_test": {
+          "itemCount": 500,
+          "averageFPS": 50,
+          "frameDrops": 5,
+          "scrollEvents": 50,
+          "renderTime": 50,
+          "memoryUsage": 1024000
+        },
+        "maximum_test": {
+          "itemCount": 1000,
+          "averageFPS": 40,
+          "frameDrops": 10,
+          "scrollEvents": 100,
+          "renderTime": 100,
+          "memoryUsage": 2048000
+        },
+        "performance_degradation": 32.20338983050847
+      },
+      "issues": [
+        "High performance degradation with large lists: 32.20338983050847%"
+      ],
+      "critical": false,
+      "duration": 0,
+      "timestamp": "2025-08-07T17:15:16.074Z"
+    },
+    {
+      "name": "Memory Usage Validation",
+      "description": "Validate memory usage under 150MB on low-end devices",
+      "category": "memory",
+      "status": "passed",
+      "score": 100,
+      "metrics": {
+        "low_end_device": {
+          "deviceType": "low_end",
+          "baseUsage": 41943040,
+          "peakUsage": 62914560,
+          "averageUsage": 46137344,
+          "memoryPressure": "normal",
+          "gcCollections": 0,
+          "cleanupEfficiency": 78.53848786185407
+        },
+        "mid_range_device": {
+          "deviceType": "mid_range",
+          "baseUsage": 52428800,
+          "peakUsage": 62914560,
+          "averageUsage": 57671680.00000001,
+          "memoryPressure": "normal",
+          "gcCollections": 0,
+          "cleanupEfficiency": 89.33422238556041
+        },
+        "high_end_device": {
+          "deviceType": "high_end",
+          "baseUsage": 62914560,
+          "peakUsage": 62914560,
+          "averageUsage": 69206016,
+          "memoryPressure": "normal",
+          "gcCollections": 5,
+          "cleanupEfficiency": 70.2846577055218
+        },
+        "tablet_device": {
+          "deviceType": "tablet",
+          "baseUsage": 83886080,
+          "peakUsage": 67108864,
+          "averageUsage": 92274688,
+          "memoryPressure": "normal",
+          "gcCollections": 1,
+          "cleanupEfficiency": 79.60568264375121
+        },
+        "memory_leaks_detected": [],
+        "cleanup_efficiency": 79.44076264917187
+      },
+      "issues": [],
+      "critical": true,
+      "duration": 0,
+      "timestamp": "2025-08-07T17:15:16.074Z"
+    },
+    {
+      "name": "Cache Hit Rate Validation",
+      "description": "Ensure cache hit rate above 80%",
+      "category": "caching",
+      "status": "passed",
+      "score": 85,
+      "metrics": {
+        "image_cache": {
+          "cacheType": "image_cache",
+          "operations": 1000,
+          "hits": 913,
+          "misses": 87,
+          "hitRate": 91.38546436479578,
+          "averageResponseTime": 15,
+          "cacheSize": 300,
+          "evictions": 100
+        },
+        "api_cache": {
+          "cacheType": "api_cache",
+          "operations": 500,
+          "hits": 404,
+          "misses": 96,
+          "hitRate": 80.92290607277437,
+          "averageResponseTime": 15,
+          "cacheSize": 150,
+          "evictions": 50
+        },
+        "response_cache": {
+          "cacheType": "response_cache",
+          "operations": 800,
+          "hits": 678,
+          "misses": 122,
+          "hitRate": 84.76427724571155,
+          "averageResponseTime": 15,
+          "cacheSize": 240,
+          "evictions": 80
+        },
+        "mixed_usage": {
+          "cacheType": "mixed_usage",
+          "operations": 2000,
+          "hits": 1451,
+          "misses": 549,
+          "hitRate": 72.59495113650547,
+          "averageResponseTime": 25,
+          "cacheSize": 600,
+          "evictions": 200
+        },
+        "overall_hit_rate": 80.13953488372093,
+        "cache_efficiency": 82.4168997049468
+      },
+      "issues": [
+        "Cache hit rate good but could be improved"
+      ],
+      "critical": false,
+      "duration": 0,
+      "timestamp": "2025-08-07T17:15:16.074Z"
+    },
+    {
+      "name": "Orientation Change Performance",
+      "description": "Test responsive layout changes under 200ms",
+      "category": "ui_performance",
+      "status": "passed",
+      "score": 90,
+      "metrics": {
+        "normal_conditions": {
+          "condition": "normal_load",
+          "averageTime": 125.28786719025211,
+          "worstTime": 162.87422734732775,
+          "bestTime": 87.70150703317647,
+          "changes": 10,
+          "consistency": 85
+        },
+        "heavy_load": {
+          "condition": "heavy_load",
+          "averageTime": 174.2661452606953,
+          "worstTime": 226.54598883890392,
+          "bestTime": 121.98630168248671,
+          "changes": 10,
+          "consistency": 75
+        },
+        "memory_pressure": {
+          "condition": "memory_pressure",
+          "averageTime": 204.3282082062336,
+          "worstTime": 265.6266706681037,
+          "bestTime": 143.0297457443635,
+          "changes": 10,
+          "consistency": 70
+        },
+        "background_tasks": {
+          "condition": "background_tasks",
+          "averageTime": 179.42473911695214,
+          "worstTime": 233.25216085203778,
+          "bestTime": 125.59731738186649,
+          "changes": 10,
+          "consistency": 80
+        },
+        "consistency": 77.5,
+        "worst_case": 204.3282082062336
+      },
+      "issues": [
+        "Inconsistent orientation performance: 77.5% consistency"
+      ],
+      "critical": false,
+      "duration": 0,
+      "timestamp": "2025-08-07T17:15:16.074Z"
+    },
+    {
+      "name": "Memory Leak Detection",
+      "description": "Extended memory usage monitoring for leak detection",
+      "category": "memory",
+      "status": "failed",
+      "critical": true,
+      "metrics": {
+        "snapshots": 30,
+        "duration": 30,
+        "initial_heap": 52428800,
+        "final_heap": 79887972,
+        "memory_growth": 27459172,
+        "leak_detected": true,
+        "growth_rate": 523.7421417236328
+      },
+      "issues": [
+        "Memory leak detected: 523.74MB/min growth"
+      ],
+      "score": 20
+    },
+    {
+      "name": "Cache Efficiency Analysis",
+      "description": "Deep analysis of cache performance under various scenarios",
+      "category": "caching",
+      "status": "warning",
+      "critical": false,
+      "metrics": {
+        "scenarios": [
+          {
+            "scenario": "cold_start",
+            "operations": 100,
+            "hitRate": 64.93435298695682,
+            "avgResponseTime": 25,
+            "cacheEvictions": 10
+          },
+          {
+            "scenario": "warm_cache",
+            "operations": 500,
+            "hitRate": 85.58329116356859,
+            "avgResponseTime": 15,
+            "cacheEvictions": 50
+          },
+          {
+            "scenario": "mixed_access",
+            "operations": 1000,
+            "hitRate": 80.12483352586152,
+            "avgResponseTime": 15,
+            "cacheEvictions": 100
+          },
+          {
+            "scenario": "memory_pressure",
+            "operations": 200,
+            "hitRate": 69.44851933158857,
+            "avgResponseTime": 25,
+            "cacheEvictions": 20
+          }
+        ],
+        "overall_hit_rate": 75.02274925199387,
+        "consistency": 58.89007967885603,
+        "best_scenario": 85.58329116356859,
+        "worst_scenario": 64.93435298695682,
+        "performance_variance": 67.60102195243222
+      },
+      "issues": [
+        "Cache efficiency below target - review cache strategy"
+      ],
+      "score": 60
+    },
+    {
+      "name": "Low-end Android Performance",
+      "description": "Performance simulation for Low-end Android",
+      "category": "device_simulation",
+      "status": "failed",
+      "critical": true,
+      "metrics": {
+        "device_specs": {
+          "name": "Low-end Android",
+          "ram": 2,
+          "cpu_power": 0.5
+        },
+        "simulated_fps": 30,
+        "memory_usage": 224.63819034165726,
+        "scroll_fps": 27.11864930828944,
+        "render_time": 32,
+        "overall_performance": null
+      },
+      "issues": [
+        "Poor performance on Low-end Android"
+      ],
+      "score": 30
+    },
+    {
+      "name": "Mid-range Android Performance",
+      "description": "Performance simulation for Mid-range Android",
+      "category": "device_simulation",
+      "status": "failed",
+      "critical": false,
+      "metrics": {
+        "device_specs": {
+          "name": "Mid-range Android",
+          "ram": 4,
+          "cpu_power": 0.75
+        },
+        "simulated_fps": 45.811731604205235,
+        "memory_usage": 148.79714894168822,
+        "scroll_fps": 36.386118395692904,
+        "render_time": 21.333333333333332,
+        "overall_performance": null
+      },
+      "issues": [
+        "Poor performance on Mid-range Android"
+      ],
+      "score": 30
+    },
+    {
+      "name": "High-end Android Performance",
+      "description": "Performance simulation for High-end Android",
+      "category": "device_simulation",
+      "status": "failed",
+      "critical": false,
+      "metrics": {
+        "device_specs": {
+          "name": "High-end Android",
+          "ram": 8,
+          "cpu_power": 1
+        },
+        "simulated_fps": 57.35011566903011,
+        "memory_usage": 57.732028886395085,
+        "scroll_fps": 54.94954952145479,
+        "render_time": 16,
+        "overall_performance": null
+      },
+      "issues": [
+        "Poor performance on High-end Android"
+      ],
+      "score": 30
+    },
+    {
+      "name": "iPhone SE Performance",
+      "description": "Performance simulation for iPhone SE",
+      "category": "device_simulation",
+      "status": "failed",
+      "critical": false,
+      "metrics": {
+        "device_specs": {
+          "name": "iPhone SE",
+          "ram": 3,
+          "cpu_power": 0.9
+        },
+        "simulated_fps": 53.962745080799216,
+        "memory_usage": 147.35813686551674,
+        "scroll_fps": 56.37649219453421,
+        "render_time": 17.77777777777778,
+        "overall_performance": null
+      },
+      "issues": [
+        "Poor performance on iPhone SE"
+      ],
+      "score": 30
+    },
+    {
+      "name": "iPad Performance",
+      "description": "Performance simulation for iPad",
+      "category": "device_simulation",
+      "status": "failed",
+      "critical": false,
+      "metrics": {
+        "device_specs": {
+          "name": "iPad",
+          "ram": 6,
+          "cpu_power": 1.2
+        },
+        "simulated_fps": 60,
+        "memory_usage": 90.90621983249291,
+        "scroll_fps": 71.09960070887163,
+        "render_time": 13.333333333333334,
+        "overall_performance": null
+      },
+      "issues": [
+        "Poor performance on iPad"
+      ],
+      "score": 30
+    },
+    {
+      "name": "Performance Regression Analysis",
+      "description": "Compare current performance against established baselines",
+      "category": "regression",
+      "status": "passed",
+      "critical": false,
+      "metrics": {
+        "baseline_comparison": "No regression detected",
+        "performance_trend": "Improving",
+        "regression_percentage": 0
+      },
+      "issues": [],
+      "score": 95
+    }
+  ],
+  "summary": {
+    "passed": 7,
+    "failed": 6,
+    "warnings": 1,
+    "score": 96,
+    "grade": "F",
+    "status": "NEEDS IMPROVEMENT",
+    "total": 14,
+    "overall_score": 64
+  },
+  "performance_metrics": {},
+  "recommendations": [
+    {
+      "type": "optimization",
+      "priority": "low",
+      "message": "Review and optimize large modules"
+    },
+    {
+      "type": "optimization",
+      "priority": "medium",
+      "message": "Implement better virtualization for large lists"
+    },
+    {
+      "type": "memory_leak",
+      "priority": "critical",
+      "message": "Investigate and fix detected memory leak"
+    }
+  ]
+}

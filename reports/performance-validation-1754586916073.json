@@ -1,0 +1,267 @@
+{
+  "timestamp": "2025-08-07T17:15:16.068Z",
+  "tests": [
+    {
+      "name": "Timer 60 FPS Validation",
+      "category": "performance",
+      "status": "passed",
+      "metrics": {
+        "averageFPS": 59.453861599437104,
+        "worstFPS": 51.453861599437104,
+        "frameDrops": 0,
+        "consistency": 87.76649934027144,
+        "duration": 30000
+      },
+      "issues": [],
+      "score": 100
+    },
+    {
+      "name": "Bundle Size Analysis",
+      "category": "bundle",
+      "status": "passed",
+      "metrics": {
+        "total_size": 52428800,
+        "js_bundle_size": 36700160,
+        "assets_size": 15728640,
+        "increment_from_baseline": 10485760,
+        "cold_start_impact": 253.2755839762844,
+        "memory_impact": 31457280,
+        "largest_modules": [
+          {
+            "name": "react-native",
+            "size": 8388608
+          },
+          {
+            "name": "performance-system",
+            "size": 5242880
+          },
+          {
+            "name": "charts-library",
+            "size": 3145728
+          },
+          {
+            "name": "navigation",
+            "size": 2097152
+          },
+          {
+            "name": "ui-components",
+            "size": 2621440
+          }
+        ]
+      },
+      "issues": [
+        "Large modules detected: react-native"
+      ],
+      "score": 100
+    },
+    {
+      "name": "Exercise List Scroll Performance",
+      "category": "ui_performance",
+      "status": "passed",
+      "metrics": {
+        "small_list": {
+          "itemCount": 50,
+          "averageFPS": 59,
+          "frameDrops": 0.5,
+          "scrollEvents": 5,
+          "renderTime": 5,
+          "memoryUsage": 102400
+        },
+        "target_list": {
+          "itemCount": 200,
+          "averageFPS": 56,
+          "frameDrops": 2,
+          "scrollEvents": 20,
+          "renderTime": 20,
+          "memoryUsage": 409600
+        },
+        "stress_test": {
+          "itemCount": 500,
+          "averageFPS": 50,
+          "frameDrops": 5,
+          "scrollEvents": 50,
+          "renderTime": 50,
+          "memoryUsage": 1024000
+        },
+        "maximum_test": {
+          "itemCount": 1000,
+          "averageFPS": 40,
+          "frameDrops": 10,
+          "scrollEvents": 100,
+          "renderTime": 100,
+          "memoryUsage": 2048000
+        },
+        "performance_degradation": 32.20338983050847
+      },
+      "issues": [
+        "High performance degradation with large lists: 32.20338983050847%"
+      ],
+      "score": 100
+    },
+    {
+      "name": "Memory Usage Validation",
+      "category": "memory",
+      "status": "passed",
+      "metrics": {
+        "low_end_device": {
+          "deviceType": "low_end",
+          "baseUsage": 41943040,
+          "peakUsage": 62914560,
+          "averageUsage": 46137344,
+          "memoryPressure": "normal",
+          "gcCollections": 0,
+          "cleanupEfficiency": 78.53848786185407
+        },
+        "mid_range_device": {
+          "deviceType": "mid_range",
+          "baseUsage": 52428800,
+          "peakUsage": 62914560,
+          "averageUsage": 57671680.00000001,
+          "memoryPressure": "normal",
+          "gcCollections": 0,
+          "cleanupEfficiency": 89.33422238556041
+        },
+        "high_end_device": {
+          "deviceType": "high_end",
+          "baseUsage": 62914560,
+          "peakUsage": 62914560,
+          "averageUsage": 69206016,
+          "memoryPressure": "normal",
+          "gcCollections": 5,
+          "cleanupEfficiency": 70.2846577055218
+        },
+        "tablet_device": {
+          "deviceType": "tablet",
+          "baseUsage": 83886080,
+          "peakUsage": 67108864,
+          "averageUsage": 92274688,
+          "memoryPressure": "normal",
+          "gcCollections": 1,
+          "cleanupEfficiency": 79.60568264375121
+        },
+        "memory_leaks_detected": [],
+        "cleanup_efficiency": 79.44076264917187
+      },
+      "issues": [],
+      "score": 100
+    },
+    {
+      "name": "Cache Hit Rate Validation",
+      "category": "caching",
+      "status": "passed",
+      "metrics": {
+        "image_cache": {
+          "cacheType": "image_cache",
+          "operations": 1000,
+          "hits": 913,
+          "misses": 87,
+          "hitRate": 91.38546436479578,
+          "averageResponseTime": 15,
+          "cacheSize": 300,
+          "evictions": 100
+        },
+        "api_cache": {
+          "cacheType": "api_cache",
+          "operations": 500,
+          "hits": 404,
+          "misses": 96,
+          "hitRate": 80.92290607277437,
+          "averageResponseTime": 15,
+          "cacheSize": 150,
+          "evictions": 50
+        },
+        "response_cache": {
+          "cacheType": "response_cache",
+          "operations": 800,
+          "hits": 678,
+          "misses": 122,
+          "hitRate": 84.76427724571155,
+          "averageResponseTime": 15,
+          "cacheSize": 240,
+          "evictions": 80
+        },
+        "mixed_usage": {
+          "cacheType": "mixed_usage",
+          "operations": 2000,
+          "hits": 1451,
+          "misses": 549,
+          "hitRate": 72.59495113650547,
+          "averageResponseTime": 25,
+          "cacheSize": 600,
+          "evictions": 200
+        },
+        "overall_hit_rate": 80.13953488372093,
+        "cache_efficiency": 82.4168997049468
+      },
+      "issues": [
+        "Cache hit rate good but could be improved"
+      ],
+      "score": 85
+    },
+    {
+      "name": "Orientation Change Performance",
+      "category": "ui_performance",
+      "status": "passed",
+      "metrics": {
+        "normal_conditions": {
+          "condition": "normal_load",
+          "averageTime": 125.28786719025211,
+          "worstTime": 162.87422734732775,
+          "bestTime": 87.70150703317647,
+          "changes": 10,
+          "consistency": 85
+        },
+        "heavy_load": {
+          "condition": "heavy_load",
+          "averageTime": 174.2661452606953,
+          "worstTime": 226.54598883890392,
+          "bestTime": 121.98630168248671,
+          "changes": 10,
+          "consistency": 75
+        },
+        "memory_pressure": {
+          "condition": "memory_pressure",
+          "averageTime": 204.3282082062336,
+          "worstTime": 265.6266706681037,
+          "bestTime": 143.0297457443635,
+          "changes": 10,
+          "consistency": 70
+        },
+        "background_tasks": {
+          "condition": "background_tasks",
+          "averageTime": 179.42473911695214,
+          "worstTime": 233.25216085203778,
+          "bestTime": 125.59731738186649,
+          "changes": 10,
+          "consistency": 80
+        },
+        "consistency": 77.5,
+        "worst_case": 204.3282082062336
+      },
+      "issues": [
+        "Inconsistent orientation performance: 77.5% consistency"
+      ],
+      "score": 90
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "warnings": 0,
+    "score": 96,
+    "grade": "A",
+    "status": "EXCELLENT"
+  },
+  "recommendations": [
+    {
+      "type": "optimization",
+      "priority": "low",
+      "message": "Review and optimize large modules"
+    },
+    {
+      "type": "optimization",
+      "priority": "medium",
+      "message": "Implement better virtualization for large lists"
+    }
+  ]
+}

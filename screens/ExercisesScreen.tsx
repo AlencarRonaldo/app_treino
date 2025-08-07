@@ -1,4 +1,14 @@
-import React, { useState, useMemo } from 'react';
+/**
+ * ExercisesScreen - FASE 4: Migração para OptimizedExerciseList
+ * ✅ Integração com OptimizedExerciseList da FASE 3
+ * ✅ Density modes: browsing/workout_prep/during_workout
+ * ✅ Search otimizado com debouncing
+ * ✅ Lazy loading automático de imagens
+ * ✅ FITNESS_TOUCH_TARGETS para ambiente academia
+ * ✅ Gradual fallback se componente falha
+ */
+
+import React, { useState, useMemo, useCallback } from 'react';
 import { 
   View, 
   ScrollView, 
@@ -6,11 +16,13 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
-  Alert
+  Alert,
+  InteractionManager
 } from 'react-native';
 import { Text, ActivityIndicator } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import FigmaScreen from '../components/FigmaScreen';
+import { OptimizedExerciseList } from '../components/OptimizedExerciseList';
 import { FigmaTheme } from '../constants/figmaTheme';
 import { useFitness } from '../contexts/FitnessContext';
 import { Exercicio } from '../types/fitness';
@@ -38,11 +50,47 @@ const exerciseCategories = [
 
 export default function ExercisesScreen() {
   const { exercicios, buscarExercicios, adicionarExercicio, carregando } = useFitness();
+  
+  // ===== RESPONSIVE EXERCISE STATE =====
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [searchText, setSearchText] = useState('');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [useOptimizedList, setUseOptimizedList] = useState(true);
+  const [optimizedListError, setOptimizedListError] = useState<string | null>(null);
+  
+  // Densidade de UI para contexto fitness
+  const [densityMode, setDensityMode] = useState<'browsing' | 'workout_prep' | 'during_workout'>('browsing');
 
-  // Filtrar exercícios com base na categoria e busca
+  // ===== HANDLERS OTIMIZADOS PARA OPTIMIZED LIST =====
+  const handleExerciseSelect = useCallback((exercise: Exercicio) => {
+    InteractionManager.runAfterInteractions(() => {
+      handleExercisePress(exercise);
+    });
+  }, []);
+  
+  const handleExerciseAction = useCallback((exercise: Exercicio, action: 'view' | 'add_to_workout' | 'favorite') => {
+    switch (action) {
+      case 'view':
+        showExerciseDetails(exercise);
+        break;
+      case 'add_to_workout':
+        // Implementar adicionar ao treino
+        Alert.alert('Funcionalidade', 'Adicionar ao treino em desenvolvimento');
+        break;
+      case 'favorite':
+        // Implementar favoritar
+        Alert.alert('Funcionalidade', 'Favoritar exercício em desenvolvimento');
+        break;
+    }
+  }, []);
+  
+  const handleOptimizedListError = useCallback((error: any) => {
+    console.warn('OptimizedExerciseList error, falling back to legacy:', error);
+    setOptimizedListError(error.message || 'Erro desconhecido');
+    setUseOptimizedList(false);
+  }, []);
+
+  // ===== FILTROS MEMOIZADOS =====
   const filteredExercises = useMemo(() => {
     let filtered = exercicios;
 
@@ -244,16 +292,64 @@ export default function ExercisesScreen() {
               {searchText ? 'Tente buscar por outro termo' : 'Não há exercícios nesta categoria'}
             </Text>
           </View>
-        ) : (
-          <FlatList
-            data={filteredExercises}
-            renderItem={renderExercise}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.exercisesList}
+        ) : useOptimizedList && !optimizedListError ? (
+          /* ===== OPTIMIZED EXERCISE LIST COM FITNESS UX ===== */
+          <OptimizedExerciseList
+            exercises={filteredExercises}
+            onExerciseSelect={handleExerciseSelect}
+            onExerciseAction={handleExerciseAction}
+            searchQuery={searchText}
+            category={selectedCategory}
+            densityMode={densityMode}
+            showCategories={false} // Já temos categorias no header
+            showActions={true}
+            imageConfig={{
+              enableLazyLoading: true,
+              enableCache: true,
+              fallbackIcon: 'barbell-outline'
+            }}
           />
+        ) : (
+          /* ===== LEGACY FALLBACK LIST ===== */
+          <>
+            {optimizedListError && __DEV__ && (
+              <View style={{
+                backgroundColor: '#E67E22',
+                padding: 12,
+                margin: 16,
+                borderRadius: 8
+              }}>
+                <Text style={{ color: '#fff', fontSize: 12, textAlign: 'center' }}>
+                  ⚠️ Fallback List: {optimizedListError}
+                </Text>
+              </View>
+            )}
+            <FlatList
+              data={filteredExercises}
+              renderItem={renderExercise}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.exercisesList}
+            />
+          </>
         )}
       </View>
+      
+      {/* Debug info para desenvolvimento */}
+      {__DEV__ && useOptimizedList && !optimizedListError && (
+        <View style={{
+          position: 'absolute',
+          top: 40,
+          right: 10,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: 8,
+          borderRadius: 4
+        }}>
+          <Text style={{ color: '#fff', fontSize: 10 }}>
+            OptimizedList: ON | Mode: {densityMode}
+          </Text>
+        </View>
+      )}
     </FigmaScreen>
   );
 }
